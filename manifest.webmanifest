@@ -1,1 +1,12 @@
-{"name":"Pip & the Prism Vault","short_name":"Prism Vault","start_url":"./","display":"standalone","background_color":"#0b1024","theme_color":"#11152c","icons":[{"src":"assets/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{
+  "name": "Pip & the Prism Vault",
+  "short_name": "Prism Vault",
+  "description": "A 100-room single-screen puzzle arcade adventure.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#080b18",
+  "theme_color": "#171b38",
+  "icons": [{ "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

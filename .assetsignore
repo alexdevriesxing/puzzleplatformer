@@ -1,0 +1,10 @@
+.git/
+.github/
+docs/
+tests/
+scripts/
+node_modules/
+package*.json
+wrangler.jsonc
+README.md
+LICENSE

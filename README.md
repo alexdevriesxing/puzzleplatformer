@@ -88,3 +88,25 @@ The automated campaign validator checks all 100 rooms for dimensions, unique nam
 ![Pip hero model sheet](assets/hero-model-sheet.svg)
 
 The codebase separates campaign data, rendering, audio, and game state so Pip, the UI language, accessibility system, input layer, and production pipeline can be reused in future puzzle arcade and puzzle-platform entries.
+
+## Deploy to Cloudflare
+
+This repository deploys as a Cloudflare Worker with Static Assets. The production bundle is generated in `dist/`; source files remain outside the deployed asset directory.
+
+```bash
+npm install
+npm run check
+npx wrangler login
+npm run deploy
+```
+
+Wrangler creates the `pip-prism-vault` Worker and prints the preview or production URL. For automated GitHub deployment, configure `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets before merging to `main`.
+
+Local Cloudflare runtime:
+
+```bash
+npm install
+npm run dev
+```
+
+The game is installable as a landscape PWA and caches its core shell for offline play after the first successful load.
