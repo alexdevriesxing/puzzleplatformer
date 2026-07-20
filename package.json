@@ -1,0 +1,1 @@
+{"name":"pip-and-the-prism-vault","version":"1.0.0","private":true,"type":"module","scripts":{"serve":"python3 -m http.server 4173","check":"node tests/validate-levels.mjs"},"engines":{"node":">=20"}}
