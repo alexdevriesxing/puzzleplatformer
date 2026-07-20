@@ -6,6 +6,11 @@ on:
     paths:
       - '.release/**'
       - '.github/workflows/release-materialize.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.release/**'
+      - '.github/workflows/release-materialize.yml'
   workflow_dispatch:
 
 permissions:
