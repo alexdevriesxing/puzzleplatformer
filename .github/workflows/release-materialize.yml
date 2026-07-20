@@ -31,8 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf .release .release2 .cloudflare-release
-          rm -f .github/workflows/deploy.yml
-          mkdir -p scripts .github/workflows
+          mkdir -p scripts
 
           cat > package.json <<'JSON'
           {
@@ -76,14 +75,12 @@ jobs:
           const out = new URL('../dist/', import.meta.url);
           await rm(out, { recursive: true, force: true });
           await mkdir(out, { recursive: true });
-
           for (const file of ['index.html', 'styles.css', 'manifest.webmanifest', 'service-worker.js', '.nojekyll']) {
             await cp(new URL(`../${file}`, import.meta.url), new URL(file, out));
           }
           for (const dir of ['src', 'assets']) {
             await cp(new URL(`../${dir}/`, import.meta.url), new URL(`${dir}/`, out), { recursive: true });
           }
-
           const source = await readFile(new URL('../src/game.js', import.meta.url));
           const revision = createHash('sha256').update(source).digest('hex').slice(0, 12);
           const swPath = new URL('service-worker.js', out);
@@ -94,13 +91,8 @@ jobs:
 
           cat > src/bootstrap.js <<'JS'
           import './game.js';
-
           if ('serviceWorker' in navigator && location.protocol === 'https:') {
-            addEventListener('load', () => {
-              navigator.serviceWorker.register('./service-worker.js').catch(error => {
-                console.warn('Offline mode unavailable:', error);
-              });
-            });
+            addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(error => console.warn('Offline mode unavailable:', error)));
           }
           JS
 
@@ -111,13 +103,8 @@ jobs:
             './src/bootstrap.js', './src/game.js', './src/levels.js', './src/art.js', './src/audio.js',
             './assets/icon.svg', './assets/logo.svg', './assets/key-art.svg', './assets/hero-model-sheet.svg'
           ];
-
-          self.addEventListener('install', event => {
-            event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting()));
-          });
-          self.addEventListener('activate', event => {
-            event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
-          });
+          self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).then(() => self.skipWaiting())));
+          self.addEventListener('activate', event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
           self.addEventListener('fetch', event => {
             if (event.request.method !== 'GET') return;
             event.respondWith(caches.match(event.request).then(hit => hit || fetch(event.request).then(response => {
@@ -141,9 +128,7 @@ jobs:
             "orientation": "landscape",
             "background_color": "#080b18",
             "theme_color": "#171b38",
-            "icons": [
-              { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
-            ]
+            "icons": [{ "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
           }
           JSON
 
@@ -178,54 +163,6 @@ jobs:
           path.write_text(html)
           PY
 
-          cat > .github/workflows/validate.yml <<'YAML'
-          name: Validate web game
-          on:
-            pull_request:
-            push:
-              branches: [main, agent/polish-all]
-          permissions:
-            contents: read
-          jobs:
-            validate:
-              runs-on: ubuntu-latest
-              steps:
-                - uses: actions/checkout@v4
-                - uses: actions/setup-node@v4
-                  with:
-                    node-version: 22
-                    cache: npm
-                - run: npm ci --ignore-scripts
-                - run: npm run check
-                - run: npx wrangler deploy --dry-run
-          YAML
-
-          cat > .github/workflows/cloudflare.yml <<'YAML'
-          name: Deploy to Cloudflare
-          on:
-            push:
-              branches: [main]
-            workflow_dispatch:
-          permissions:
-            contents: read
-          jobs:
-            deploy:
-              runs-on: ubuntu-latest
-              steps:
-                - uses: actions/checkout@v4
-                - uses: actions/setup-node@v4
-                  with:
-                    node-version: 22
-                    cache: npm
-                - run: npm ci --ignore-scripts
-                - run: npm run check
-                - uses: cloudflare/wrangler-action@v3
-                  with:
-                    apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                    accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-                    command: deploy
-          YAML
-
           if ! grep -q '## Deploy to Cloudflare' README.md; then
             cat >> README.md <<'MD'
 
@@ -240,7 +177,7 @@ jobs:
           npm run deploy
           ```
 
-          Wrangler creates the `pip-prism-vault` Worker and prints the preview or production URL. To deploy automatically from GitHub, add repository secrets named `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, then merge this branch to `main`. The `Deploy to Cloudflare` workflow validates and publishes every push to `main`.
+          Wrangler creates the `pip-prism-vault` Worker and prints the preview or production URL. For automated GitHub deployment, configure `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets before merging to `main`.
 
           Local Cloudflare runtime:
 
@@ -249,20 +186,19 @@ jobs:
           npm run dev
           ```
 
-          The game is also installable as a landscape PWA and caches its core game shell for offline play after the first successful load.
+          The game is installable as a landscape PWA and caches its core shell for offline play after the first successful load.
           MD
           fi
 
           npm install --ignore-scripts
           npm run check
           npx wrangler deploy --dry-run
-          rm -f .github/workflows/release-materialize.yml
 
-      - name: Commit clean Cloudflare-ready game
+      - name: Commit Cloudflare source files
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
+          git add -A -- . ':(exclude).github/workflows/**'
           git diff --cached --quiet && exit 0
           git commit -m 'Build Cloudflare-ready web game'
           git push origin HEAD:agent/polish-all
