@@ -1,1 +1,45 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#171b38"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="assets/icon.svg"><title>Pip & the Prism Vault</title><link rel="stylesheet" href="styles.css"></head><body><main class="shell"><div class="stage-wrap"><canvas id="game" width="1280" height="720"></canvas><div id="live-region" class="sr-only" aria-live="polite"></div><div id="touch-controls" class="touch-controls"><button data-action="up">▲</button><button data-action="left">◀</button><button data-action="down">▼</button><button data-action="right">▶</button><button data-action="undo">Undo</button><button data-action="restart">Retry</button></div></div><p class="keyboard-help">Move: arrows / WASD · Undo: Z · Restart: R · Hint: H · Pause: Esc</p></main><script type="module" src="src/bootstrap.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#11162f">
+  <meta name="description" content="Pip & the Prism Vault — a 100-room single-screen puzzle arcade adventure.">
+  <title>Pip & the Prism Vault</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <div class="stage-wrap" aria-label="Pip and the Prism Vault game">
+      <canvas
+        id="game"
+        width="1280"
+        height="720"
+        tabindex="0"
+        role="application"
+        aria-label="Pip and the Prism Vault. Use arrow keys or WASD to move, Z to undo, R to restart, H for a hint, and Escape to pause."
+      ></canvas>
+      <div id="live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+      <div id="touch-controls" class="touch-controls" hidden aria-label="Touch game controls">
+        <button type="button" data-action="up" aria-label="Move up">▲</button>
+        <button type="button" data-action="left" aria-label="Move left">◀</button>
+        <button type="button" data-action="down" aria-label="Move down">▼</button>
+        <button type="button" data-action="right" aria-label="Move right">▶</button>
+        <button type="button" data-action="undo">Undo</button>
+        <button type="button" data-action="restart">Retry</button>
+      </div>
+    </div>
+    <p class="keyboard-help">Move: arrows / WASD · Undo: Z · Restart: R · Hint: H · Pause: Esc · Gamepad supported</p>
+    <p class="rotate-help" aria-hidden="true">Rotate your device for the full Vault view.</p>
+  </main>
+  <noscript>This game needs JavaScript enabled.</noscript>
+  <script type="module" src="src/game.js"></script>
+  <script>
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+    }
+  </script>
+</body>
+</html>

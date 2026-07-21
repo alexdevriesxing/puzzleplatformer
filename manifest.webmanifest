@@ -7,6 +7,8 @@
   "display": "fullscreen",
   "orientation": "landscape",
   "background_color": "#080b18",
-  "theme_color": "#171b38",
-  "icons": [{ "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+  "theme_color": "#11162f",
+  "icons": [
+    {"src":"assets/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
 }

@@ -40,16 +40,16 @@ export const WORLDS = worldData.map((w,i)=>({
 }));
 
 const names = [
-['First Light','Brass Footsteps','The Long Tick','Three Bright Things','Scarab Parade','Pendulum Alley','Lift Etiquette','Clockface Cross','The Waking Wing','Curator’s Test'],
-['Green Key Morning','Vine-Locked','Fernway Fork','Sunkey Picnic','Orchid Door','Moss Maze','Glasshouse Loop','Root and Route','The Keeper’s Arbor','Blooming Lock'],
-['Cold Push','Blue Momentum','Plate Practice','Frosted Freight','Crate Ballet','Mirror Ice','Two-Ton Snowflake','Gallery Glide','Pressure Below Zero','The Crystal Shove'],
-['Warm Welcome','Cinder Step','Slip Past Sparks','Forge Rhythm','Heatwave Hall','Ice in the Furnace','Anvil Avenue','Red-Hot Shortcut','Bellows and Bravery','Heart of the Kiln'],
-['Current Affairs','Belt and Bolt','Pink Lightning','Moving Target','Static Sprint','Coil Corridor','Thunder Conveyor','Drone Zone','Voltage Vault','Eye of the Lab'],
-['One-Way Chapter','Quiet Stacks','Footnote Falling','Ghostwriter','Shelf Life','Index of Peril','The Missing Page','Mirror Reader','Last Copy','Infinite Checkout'],
-['Near is Far','Twin Moons','Orbit Hop','Starlight Shortcut','Lunar Relay','Gravity’s Joke','Comet Crossing','Orrery Eight','Eclipse Route','The Silver Distance'],
-['First Current','Glass Tunnel','Tide Table','Bridge Below','Jelly Drift','Deep End','Coral Circuit','Pressure Bubble','Abyssal Arcade','The Golden Current'],
-['Black Gate','Null Patrol','Red Key Rising','Citadel Circuit','Every Trick Once','Shadow Copy','Tower of Teeth','The Baron’s Lock','Obsidian Gauntlet','Door to the Core'],
-['Spectrum One','Sevenfold Step','Prism Relay','Light Against Null','Core Memory','Chromatic Chase','The Last Lock','Heart Chamber','Baron Null','Morning Returns']
+ ['First Light','Brass Footsteps','The Long Tick','Three Bright Things','Scarab Parade','Pendulum Alley','Lift Etiquette','Clockface Cross','The Waking Wing','Curator’s Test'],
+ ['Green Key Morning','Vine-Locked','Fernway Fork','Sunkey Picnic','Orchid Door','Moss Maze','Glasshouse Loop','Root and Route','The Keeper’s Arbor','Blooming Lock'],
+ ['Cold Push','Blue Momentum','Plate Practice','Frosted Freight','Crate Ballet','Mirror Ice','Two-Ton Snowflake','Gallery Glide','Pressure Below Zero','The Crystal Shove'],
+ ['Warm Welcome','Cinder Step','Slip Past Sparks','Forge Rhythm','Heatwave Hall','Ice in the Furnace','Anvil Avenue','Red-Hot Shortcut','Bellows and Bravery','Heart of the Kiln'],
+ ['Current Affairs','Belt and Bolt','Pink Lightning','Moving Target','Static Sprint','Coil Corridor','Thunder Conveyor','Drone Zone','Voltage Vault','Eye of the Lab'],
+ ['One-Way Chapter','Quiet Stacks','Footnote Falling','Ghostwriter','Shelf Life','Index of Peril','The Missing Page','Mirror Reader','Last Copy','Infinite Checkout'],
+ ['Near is Far','Twin Moons','Orbit Hop','Starlight Shortcut','Lunar Relay','Gravity’s Joke','Comet Crossing','Orrery Eight','Eclipse Route','The Silver Distance'],
+ ['First Current','Glass Tunnel','Tide Table','Bridge Below','Jelly Drift','Deep End','Coral Circuit','Pressure Bubble','Abyssal Arcade','The Golden Current'],
+ ['Black Gate','Null Patrol','Red Key Rising','Citadel Circuit','Every Trick Once','Shadow Copy','Tower of Teeth','The Baron’s Lock','Obsidian Gauntlet','Door to the Core'],
+ ['Spectrum One','Sevenfold Step','Prism Relay','Light Against Null','Core Memory','Chromatic Chase','The Last Lock','Heart Chamber','Baron Null','Morning Returns']
 ];
 
 const enemyByWorld = [
@@ -89,14 +89,17 @@ function applyMechanics(level,world,local,r,blocked){
   if(world===1){g[y][6]=TILE.DOOR; level.keys=[{x:3,y}]; blocked.add(`3,${y}`);}
   if(world===2){g[y][6]=TILE.PLATE; g[y][9]=TILE.GATE; g[y][4]=TILE.FLOOR; level.crates=[{x:4,y}]; blocked.add(`4,${y}`); blocked.add(`6,${y}`);}
   if(world===3){for(const x of [4,5,6])g[y][x]=TILE.ICE;place(TILE.SPIKE,1+Math.floor(local/3));}
-  if(world===4){for(const x of [4,5,6])g[y][x]=local%2?TILE.CONVEYOR_L:TILE.CONVEYOR_R;}
+  if(world===4){
+    for(const x of [4,5,6]) g[y][x]=TILE.CONVEYOR_R;
+    if(local%2){const sideY=y<=4?Math.min(7,y+2):Math.max(1,y-2);for(const x of [7,8])if(g[sideY][x]===TILE.FLOOR)g[sideY][x]=TILE.CONVEYOR_L;}
+  }
   if(world===5){for(const x of [4,5,6])g[y][x]=TILE.FRAGILE;}
   if(world===6){const a={x:3,y},b={x:8,y};g[a.y][a.x]=TILE.TELEPORT_A;g[b.y][b.x]=TILE.TELEPORT_B;blocked.add(key(a));blocked.add(key(b));}
   if(world===7){place(TILE.WATER,4+local%3);place(TILE.BRIDGE,2);}
-  if(world===8){g[y][6]=TILE.DOOR;level.keys=[{x:3,y}];blocked.add(`3,${y}`);if(local>4)place(TILE.FRAGILE,2);if(local>6){g[y][8]=TILE.PLATE;g[y][9]=TILE.GATE;g[y][5]=TILE.FLOOR;level.crates=[{x:5,y}];blocked.add(`5,${y}`);}}
+  if(world===8){g[y][6]=TILE.DOOR;level.keys=[{x:3,y}];blocked.add(`3,${y}`);if(local>4)place(TILE.FRAGILE,2);if(local>7)place(TILE.PIT,1);if(local>6){g[y][8]=TILE.PLATE;g[y][9]=TILE.GATE;g[y][5]=TILE.FLOOR;level.crates=[{x:5,y}];blocked.add(`5,${y}`);}}
   if(world===9){
     if(local%2===0)for(const x of [4,5])g[y][x]=TILE.ICE; else for(const x of [4,5])g[y][x]=TILE.CONVEYOR_R;
-    place(TILE.SPIKE,1+local%2);if(local>=3){g[y][3]=TILE.TELEPORT_A;g[y][8]=TILE.TELEPORT_B;blocked.add(`3,${y}`);blocked.add(`8,${y}`);}
+    place(TILE.SPIKE,1+local%2);if(local>=5)place(TILE.PIT,1);if(local>=3){g[y][3]=TILE.TELEPORT_A;g[y][8]=TILE.TELEPORT_B;blocked.add(`3,${y}`);blocked.add(`8,${y}`);}
     if(local>=6){g[y][6]=TILE.DOOR;level.keys=[{x:2,y}];blocked.add(`2,${y}`);} if(local>=8)place(TILE.FRAGILE,2);
   }
 }

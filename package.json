@@ -8,7 +8,7 @@
     "build": "node scripts/build.mjs",
     "dev": "npm run build && wrangler pages dev",
     "test": "node tests/validate-levels.mjs",
-    "check": "node --check src/levels.js && node --check src/art.js && node --check src/audio.js && node --check src/game.js && node --check src/bootstrap.js && npm run test && npm run build",
+    "check": "node --check src/levels.js && node --check src/engine.js && node --check src/audio.js && node --check src/art.js && node --check src/game.js && npm run test && npm run build",
     "deploy": "npm run check && wrangler pages deploy"
   },
   "devDependencies": {
