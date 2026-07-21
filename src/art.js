@@ -1,817 +1,135 @@
-import { TILE } from './levels.js';
+export const COLORS = {
+  ink:'#080b19', cream:'#fff1c2', gold:'#f5be3f', cyan:'#48dcff', coral:'#ff5b69', violet:'#9b5eff', mint:'#5ae191', white:'#ffffff', muted:'#a9b7d8'
+};
 
-export const VIEW = Object.freeze({ w: 1280, h: 720, boardX: 48, boardY: 130, tile: 58, hudX: 842, hudW: 390 });
+let ART_ASSETS = {};
+const THEME_INDEX = Object.freeze({gear:0,garden:1,ice:2,foundry:3,storm:4,library:5,moon:6,aquarium:7,citadel:8,prism:9});
+const ENEMY_ROW = Object.freeze({scarab:0,crawler:1,slime:2,hopper:3,turret:4,drone:5,mimic:6,ghost:7});
 
-function roundedPath(ctx, x, y, width, height, radius = 14) {
-  const r = Math.min(radius, width / 2, height / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + width, y, x + width, y + height, r);
-  ctx.arcTo(x + width, y + height, x, y + height, r);
-  ctx.arcTo(x, y + height, x, y, r);
-  ctx.arcTo(x, y, x + width, y, r);
-  ctx.closePath();
+export function bindArtAssets(assets={}) { ART_ASSETS = assets; }
+function ready(image){ return !!image?.complete && image.naturalWidth > 0; }
+function atlasFrame(ctx,image,index,cols,cellW,cellH,x,y,w,h,flip=false,alpha=1){
+  if(!ready(image)) throw new Error('Required production atlas is unavailable.');
+  const sx=(index%cols)*cellW, sy=Math.floor(index/cols)*cellH;
+  ctx.save(); ctx.globalAlpha*=alpha;
+  if(flip){ctx.translate(x+w,y);ctx.scale(-1,1);ctx.drawImage(image,sx,sy,cellW,cellH,0,0,w,h);}
+  else ctx.drawImage(image,sx,sy,cellW,cellH,x,y,w,h);
+  ctx.restore(); return true;
 }
 
-function starPath(ctx, outer, inner, points = 8) {
-  ctx.beginPath();
-  for (let index = 0; index < points * 2; index += 1) {
-    const angle = -Math.PI / 2 + index * Math.PI / points;
-    const radius = index % 2 === 0 ? outer : inner;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
+export function rr(ctx,x,y,w,h,r){const q=Math.min(r,w/2,h/2);ctx.beginPath();ctx.roundRect(x,y,w,h,q);}
+export function fillStroke(ctx,fill,stroke=COLORS.ink,line=3){ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=line;ctx.stroke();}}
+export function text(ctx,value,x,y,size,color='#fff',align='left',weight=800,font='ui-rounded, Trebuchet MS, system-ui'){ctx.save();ctx.font=`${weight} ${size}px ${font}`;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillStyle=color;ctx.fillText(value,x,y);ctx.restore();}
+export function shadowText(ctx,value,x,y,size,color='#fff',align='center',weight=900){ctx.save();ctx.font=`${weight} ${size}px ui-rounded, Trebuchet MS, system-ui`;ctx.textAlign=align;ctx.textBaseline='middle';ctx.lineJoin='round';ctx.lineWidth=Math.max(3,size*.12);ctx.strokeStyle=COLORS.ink;ctx.strokeText(value,x,y);ctx.fillStyle=color;ctx.fillText(value,x,y);ctx.restore();}
+export function fittedText(ctx,value,x,y,maxWidth,size,color='#fff',align='left',weight=800,minSize=10){
+  let fitted=size;ctx.save();
+  while(fitted>minSize){ctx.font=`${weight} ${fitted}px ui-rounded, Trebuchet MS, system-ui`;if(ctx.measureText(String(value)).width<=maxWidth)break;fitted-=1;}
+  ctx.restore();text(ctx,value,x,y,fitted,color,align,weight);return fitted;
+}
+export function divider(ctx,x,y,w,color='rgba(255,255,255,.18)'){
+  ctx.save();const g=ctx.createLinearGradient(x,y,x+w,y);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.16,color);g.addColorStop(.84,color);g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(x,y,w,1);ctx.restore();
+}
+export function pill(ctx,x,y,w,h,label,accent=COLORS.cyan,opts={}){
+  ctx.save();rr(ctx,x,y,w,h,h/2);ctx.fillStyle=opts.fill??'rgba(9,14,38,.78)';ctx.fill();ctx.strokeStyle=opts.stroke??accent;ctx.globalAlpha=.92;ctx.lineWidth=opts.line??2;ctx.stroke();ctx.globalAlpha=1;fittedText(ctx,label,x+w/2,y+h/2,w-20,opts.size??12,opts.color??COLORS.cream,'center',opts.weight??900,9);ctx.restore();
+}
+export function statCard(ctx,x,y,w,h,label,value,accent=COLORS.cyan,detail=''){
+  ctx.save();rr(ctx,x,y,w,h,15);ctx.fillStyle='rgba(8,13,34,.78)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.14)';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle=accent;rr(ctx,x,y,5,h,3);ctx.fill();text(ctx,label,x+17,y+17,10,'rgba(255,255,255,.58)','left',900);fittedText(ctx,String(value),x+17,y+42,w-34,22,COLORS.cream,'left',1000,14);if(detail)fittedText(ctx,detail,x+w-14,y+h-14,w*.5,10,accent,'right',900,8);ctx.restore();
 }
 
-function colorWithAlpha(hex, alpha) {
-  if (!hex?.startsWith('#')) return hex;
-  const normalized = hex.length === 4
-    ? hex.slice(1).split('').map((value) => value + value).join('')
-    : hex.slice(1);
-  const number = Number.parseInt(normalized, 16);
-  return `rgba(${number >> 16},${(number >> 8) & 255},${number & 255},${alpha})`;
-}
-
-export function text(ctx, value, x, y, size = 24, color = '#fff4d6', align = 'left', weight = 800) {
-  ctx.save();
-  ctx.font = `${weight} ${size}px ui-rounded, "Trebuchet MS", system-ui, sans-serif`;
-  ctx.textAlign = align;
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = color;
-  ctx.fillText(String(value), x, y);
+export function panel(ctx,x,y,w,h,fill='rgba(20,28,64,.92)',stroke='rgba(255,255,255,.18)',r=22){
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.42)';ctx.shadowBlur=24;ctx.shadowOffsetY=10;
+  atlasFrame(ctx,ART_ASSETS.uiAtlas,0,4,320,160,x,y,w,h);
+  ctx.globalCompositeOperation='source-atop';ctx.globalAlpha=.30;ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+  rr(ctx,x+.75,y+.75,w-1.5,h-1.5,r);ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();
+  rr(ctx,x+7,y+7,w-14,h-14,Math.max(8,r-7));ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;ctx.stroke();
+  const gloss=ctx.createLinearGradient(0,y,0,y+Math.min(100,h));gloss.addColorStop(0,'rgba(255,255,255,.10)');gloss.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=gloss;rr(ctx,x+8,y+8,w-16,Math.min(86,h-16),Math.max(8,r-8));ctx.fill();
   ctx.restore();
 }
 
-export function wrap(ctx, value, x, y, maxWidth, size = 22, lineHeight = 30, color = '#fff4d6', align = 'left') {
-  const words = String(value).split(/\s+/);
-  const lines = [];
-  let current = '';
+export function drawBackdrop(ctx,theme,t,state='game'){
+  const idx=THEME_INDEX[theme.theme]??0;
+  const image=ART_ASSETS.backdrops?.[idx];
+  if(!ready(image)) throw new Error(`Required chapter backdrop ${idx+1} is unavailable.`);
+  ctx.drawImage(image,0,0,1280,720);
   ctx.save();
-  ctx.font = `800 ${size}px ui-rounded, "Trebuchet MS", system-ui, sans-serif`;
-  for (const word of words) {
-    const candidate = current ? `${current} ${word}` : word;
-    if (ctx.measureText(candidate).width > maxWidth && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = candidate;
-    }
-  }
-  if (current) lines.push(current);
-  ctx.restore();
-  lines.forEach((line, index) => text(ctx, line, x, y + index * lineHeight, size, color, align));
-  return lines.length * lineHeight;
-}
-
-export function panel(ctx, x, y, width, height, accent = '#67f3ff', alpha = 0.92) {
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,.42)';
-  ctx.shadowBlur = 24;
-  ctx.shadowOffsetY = 12;
-  roundedPath(ctx, x, y, width, height, 20);
-  const fill = ctx.createLinearGradient(x, y, x, y + height);
-  fill.addColorStop(0, `rgba(13,20,48,${alpha})`);
-  fill.addColorStop(1, `rgba(5,9,25,${Math.min(1, alpha + 0.04)})`);
-  ctx.fillStyle = fill;
-  ctx.fill();
-  ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = colorWithAlpha(accent, 0.52);
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  const gloss = ctx.createLinearGradient(x, y, x, y + 30);
-  gloss.addColorStop(0, 'rgba(255,255,255,.16)');
-  gloss.addColorStop(1, 'rgba(255,255,255,0)');
-  roundedPath(ctx, x + 2, y + 2, width - 4, Math.min(30, height - 4), 17);
-  ctx.fillStyle = gloss;
-  ctx.fill();
-  ctx.restore();
-}
-
-export function button(ctx, rectangle, label, active = false, accent = '#67f3ff') {
-  const { x, y, w, h } = rectangle;
-  ctx.save();
-  ctx.shadowColor = active ? colorWithAlpha(accent, 0.45) : 'rgba(0,0,0,.28)';
-  ctx.shadowBlur = active ? 20 : 9;
-  ctx.shadowOffsetY = 5;
-  roundedPath(ctx, x, y, w, h, Math.min(15, h * 0.3));
-  const fill = ctx.createLinearGradient(x, y, x, y + h);
-  fill.addColorStop(0, active ? '#4a5a9a' : '#303963');
-  fill.addColorStop(1, active ? '#222d61' : '#171e40');
-  ctx.fillStyle = fill;
-  ctx.fill();
-  ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = active ? accent : 'rgba(255,255,255,.24)';
-  ctx.lineWidth = active ? 3 : 2;
-  ctx.stroke();
-  if (active) {
-    ctx.fillStyle = colorWithAlpha(accent, 0.16);
-    roundedPath(ctx, x + 5, y + 5, w - 10, h - 10, Math.min(11, h * 0.24));
-    ctx.fill();
-  }
-  let fontSize = Math.max(12, Math.min(22, h * 0.43));
-  ctx.font = `900 ${fontSize}px ui-rounded, "Trebuchet MS", system-ui, sans-serif`;
-  while (fontSize > 12 && ctx.measureText(String(label)).width > w - 18) {
-    fontSize -= 1;
-    ctx.font = `900 ${fontSize}px ui-rounded, "Trebuchet MS", system-ui, sans-serif`;
-  }
-  text(ctx, label, x + w / 2, y + h / 2, fontSize, active ? '#ffffff' : '#fff4d6', 'center', 900);
-  ctx.restore();
-}
-
-export function background(ctx, world, timestamp = 0) {
-  const palette = world.palette;
-  const gradient = ctx.createLinearGradient(0, 0, 1280, 720);
-  gradient.addColorStop(0, palette[0]);
-  gradient.addColorStop(0.52, palette[1]);
-  gradient.addColorStop(1, '#070a17');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 1280, 720);
-
-  ctx.save();
-  ctx.globalAlpha = 0.1;
-  ctx.strokeStyle = palette[3];
-  ctx.lineWidth = 2;
-  for (let index = 0; index < 18; index += 1) {
-    const y = (index * 53 + timestamp * 0.01 * (index % 3 + 1)) % 820 - 50;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.bezierCurveTo(320, y - 50, 680, y + 80, 1280, y - 10);
-    ctx.stroke();
-  }
-  ctx.globalAlpha = 0.16;
-  for (let index = 0; index < 28; index += 1) {
-    const x = (index * 83 + Math.sin(timestamp * 0.0003 + index) * 18) % 1280;
-    const y = (index * 137 + timestamp * 0.006 * (index % 2 ? 1 : -1) + 720) % 720;
-    const radius = 1 + index % 4;
-    ctx.fillStyle = index % 3 ? palette[3] : palette[4];
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fill();
+  const accent=theme.accent||COLORS.cyan;
+  ctx.globalCompositeOperation='screen';
+  for(let i=0;i<28;i++){
+    const x=(i*173+t*(i%2?8:-7)+idx*41)%1420-70;
+    const y=48+(i*79+idx*29)%620;
+    ctx.globalAlpha=.11+(i%4)*.025;ctx.fillStyle=accent;ctx.beginPath();ctx.arc(x,y,2+(i%3),0,Math.PI*2);ctx.fill();
   }
   ctx.restore();
-
-  const vignette = ctx.createRadialGradient(640, 330, 180, 640, 360, 780);
-  vignette.addColorStop(0, 'rgba(0,0,0,0)');
-  vignette.addColorStop(1, 'rgba(0,0,0,.42)');
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, 1280, 720);
-}
-
-function tileBase(ctx, x, y, size, fill, stroke = 'rgba(255,255,255,.12)') {
-  roundedPath(ctx, x + 2, y + 2, size - 4, size - 4, 10);
-  ctx.fillStyle = fill;
-  ctx.fill();
-  ctx.strokeStyle = stroke;
-  ctx.lineWidth = 2;
-  ctx.stroke();
-}
-
-function drawFloorOrnament(ctx, x, y, size, world, timestamp) {
-  const worldIndex = world.id || 1;
-  ctx.save();
-  ctx.globalAlpha = 0.1;
-  ctx.strokeStyle = world.palette[3];
-  ctx.lineWidth = 1.5;
-  if (worldIndex === 1 || worldIndex === 9) {
-    ctx.beginPath();
-    ctx.arc(x + size / 2, y + size / 2, size * 0.18, 0, Math.PI * 2);
-    for (let index = 0; index < 8; index += 1) {
-      const angle = timestamp * 0.0002 + index * Math.PI / 4;
-      ctx.moveTo(x + size / 2 + Math.cos(angle) * size * 0.2, y + size / 2 + Math.sin(angle) * size * 0.2);
-      ctx.lineTo(x + size / 2 + Math.cos(angle) * size * 0.29, y + size / 2 + Math.sin(angle) * size * 0.29);
-    }
-    ctx.stroke();
-  } else if (worldIndex === 2 || worldIndex === 8) {
-    ctx.beginPath();
-    ctx.moveTo(x + 8, y + size - 9);
-    ctx.quadraticCurveTo(x + size * 0.45, y + size * 0.15, x + size - 8, y + 10);
-    ctx.stroke();
-  } else if (worldIndex === 6) {
-    ctx.strokeRect(x + 10, y + 10, size - 20, size - 20);
-    ctx.beginPath();
-    ctx.moveTo(x + 15, y + 18);
-    ctx.lineTo(x + size - 15, y + 18);
-    ctx.stroke();
-  } else {
-    ctx.beginPath();
-    ctx.moveTo(x + 8, y + size - 10);
-    ctx.lineTo(x + size - 9, y + 9);
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-export function drawTile(ctx, tile, x, y, size, world, timestamp, flags = {}) {
-  const palette = world.palette;
-  switch (tile) {
-    case TILE.FLOOR:
-      tileBase(ctx, x, y, size, palette[1]);
-      drawFloorOrnament(ctx, x, y, size, world, timestamp);
-      break;
-    case TILE.WALL: {
-      const gradient = ctx.createLinearGradient(x, y, x, y + size);
-      gradient.addColorStop(0, palette[2]);
-      gradient.addColorStop(1, palette[0]);
-      tileBase(ctx, x, y, size, gradient, palette[3]);
-      ctx.fillStyle = 'rgba(255,255,255,.14)';
-      roundedPath(ctx, x + 8, y + 7, size - 16, 9, 5);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(0,0,0,.2)';
-      roundedPath(ctx, x + 10, y + size - 15, size - 20, 6, 3);
-      ctx.fill();
-      break;
-    }
-    case TILE.EXIT:
-      tileBase(ctx, x, y, size, '#070b1a', flags.active ? palette[3] : palette[2]);
-      ctx.save();
-      ctx.shadowColor = palette[3];
-      ctx.shadowBlur = flags.active ? 20 + Math.sin(timestamp * 0.006) * 4 : 4;
-      ctx.strokeStyle = flags.active ? palette[3] : '#65708d';
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.arc(x + size / 2, y + size * 0.58, size * 0.24, Math.PI, 0);
-      ctx.lineTo(x + size * 0.74, y + size * 0.82);
-      ctx.lineTo(x + size * 0.26, y + size * 0.82);
-      ctx.closePath();
-      ctx.stroke();
-      if (flags.active) {
-        ctx.globalAlpha = 0.45;
-        ctx.fillStyle = palette[3];
-        ctx.fill();
-      }
-      ctx.restore();
-      break;
-    case TILE.DOOR:
-      tileBase(ctx, x, y, size, palette[0], palette[4]);
-      for (let index = 0; index < 3; index += 1) {
-        ctx.fillStyle = index === 1 ? palette[3] : palette[2];
-        roundedPath(ctx, x + 10 + index * 13, y + 7, 9, size - 14, 4);
-        ctx.fill();
-      }
-      ctx.fillStyle = '#ffe56d';
-      ctx.beginPath();
-      ctx.arc(x + size * 0.72, y + size * 0.54, 4, 0, Math.PI * 2);
-      ctx.fill();
-      break;
-    case TILE.PLATE:
-      tileBase(ctx, x, y, size, palette[1]);
-      ctx.fillStyle = flags.on ? palette[3] : '#11182e';
-      ctx.shadowColor = flags.on ? palette[3] : 'transparent';
-      ctx.shadowBlur = flags.on ? 14 : 0;
-      ctx.beginPath();
-      ctx.ellipse(x + size / 2, y + size * 0.62, size * 0.29, size * 0.14, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = palette[3];
-      ctx.stroke();
-      ctx.shadowColor = 'transparent';
-      break;
-    case TILE.GATE:
-      tileBase(ctx, x, y, size, palette[0]);
-      for (let index = 0; index < 4; index += 1) {
-        const height = flags.open ? size * 0.25 : size - 10;
-        ctx.fillStyle = flags.open ? 'rgba(255,255,255,.18)' : palette[4];
-        roundedPath(ctx, x + 8 + index * 12, flags.open ? y + 5 : y + 5, 7, height, 4);
-        ctx.fill();
-      }
-      break;
-    case TILE.ICE:
-      tileBase(ctx, x, y, size, '#bdebf5', '#e8ffff');
-      ctx.fillStyle = 'rgba(255,255,255,.28)';
-      ctx.beginPath();
-      ctx.moveTo(x + 8, y + 12);
-      ctx.lineTo(x + size * 0.55, y + 5);
-      ctx.lineTo(x + size * 0.27, y + size * 0.65);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,.7)';
-      for (let index = 0; index < 3; index += 1) {
-        ctx.beginPath();
-        ctx.moveTo(x + 8 + index * 16, y + size - 8);
-        ctx.lineTo(x + size - 8, y + 8 + index * 9);
-        ctx.stroke();
-      }
-      break;
-    case TILE.SPIKE:
-      tileBase(ctx, x, y, size, palette[0]);
-      ctx.fillStyle = palette[4];
-      ctx.shadowColor = palette[4];
-      ctx.shadowBlur = 8;
-      for (let index = 0; index < 3; index += 1) {
-        ctx.beginPath();
-        ctx.moveTo(x + 6 + index * 17, y + size - 8);
-        ctx.lineTo(x + 14 + index * 17, y + 12);
-        ctx.lineTo(x + 22 + index * 17, y + size - 8);
-        ctx.fill();
-      }
-      ctx.shadowColor = 'transparent';
-      break;
-    case TILE.CONVEYOR_R:
-    case TILE.CONVEYOR_L:
-      tileBase(ctx, x, y, size, palette[1]);
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(x + 4, y + 4, size - 8, size - 8);
-      ctx.clip();
-      ctx.fillStyle = palette[3];
-      for (let index = -1; index < 4; index += 1) {
-        const offset = (timestamp * 0.08 + index * 20) % 64;
-        const centerX = tile === TILE.CONVEYOR_R ? x + offset : x + size - offset;
-        ctx.beginPath();
-        ctx.moveTo(centerX - 8, y + 17);
-        ctx.lineTo(centerX + 6, y + size / 2);
-        ctx.lineTo(centerX - 8, y + size - 17);
-        ctx.closePath();
-        ctx.fill();
-      }
-      ctx.restore();
-      break;
-    case TILE.FRAGILE:
-      tileBase(ctx, x, y, size, palette[2]);
-      ctx.strokeStyle = palette[4];
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(x + 12, y + 10);
-      ctx.lineTo(x + 27, y + 26);
-      ctx.lineTo(x + 20, y + 43);
-      ctx.moveTo(x + 27, y + 26);
-      ctx.lineTo(x + 44, y + 16);
-      ctx.moveTo(x + 27, y + 26);
-      ctx.lineTo(x + 44, y + 46);
-      ctx.stroke();
-      break;
-    case TILE.PIT:
-      tileBase(ctx, x, y, size, '#03050d');
-      ctx.fillStyle = 'rgba(0,0,0,.7)';
-      ctx.beginPath();
-      ctx.ellipse(x + size / 2, y + size / 2, size * 0.34, size * 0.23, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = colorWithAlpha(palette[4], 0.35);
-      ctx.stroke();
-      break;
-    case TILE.TELEPORT_A:
-    case TILE.TELEPORT_B:
-      tileBase(ctx, x, y, size, palette[0]);
-      ctx.save();
-      ctx.translate(x + size / 2, y + size / 2);
-      ctx.rotate(timestamp * 0.001 * (tile === TILE.TELEPORT_A ? 1 : -1));
-      ctx.strokeStyle = tile === TILE.TELEPORT_A ? '#67f3ff' : '#ff69c0';
-      ctx.shadowColor = ctx.strokeStyle;
-      ctx.shadowBlur = 14;
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      for (let angle = 0; angle < Math.PI * 3; angle += 0.15) {
-        const radius = angle * 2.3;
-        const px = Math.cos(angle) * radius;
-        const py = Math.sin(angle) * radius;
-        if (angle === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-      }
-      ctx.stroke();
-      ctx.restore();
-      break;
-    case TILE.WATER:
-      tileBase(ctx, x, y, size, '#12667a', '#7af4ff');
-      ctx.strokeStyle = 'rgba(255,255,255,.58)';
-      for (let index = 0; index < 3; index += 1) {
-        const yy = y + 15 + index * 14;
-        ctx.beginPath();
-        for (let xx = 0; xx < size; xx += 4) {
-          const py = yy + Math.sin(xx * 0.25 + timestamp * 0.004 + index) * 3;
-          if (xx === 0) ctx.moveTo(x + xx, py); else ctx.lineTo(x + xx, py);
-        }
-        ctx.stroke();
-      }
-      break;
-    case TILE.BRIDGE:
-      tileBase(ctx, x, y, size, '#754932', '#ffd47a');
-      for (let index = 0; index < 4; index += 1) {
-        ctx.fillStyle = index % 2 ? '#9c6640' : '#b77a4a';
-        roundedPath(ctx, x + 6, y + 7 + index * 12, size - 12, 9, 3);
-        ctx.fill();
-      }
-      ctx.strokeStyle = '#e8bf73';
-      ctx.beginPath();
-      ctx.moveTo(x + 10, y + 5);
-      ctx.lineTo(x + 10, y + size - 5);
-      ctx.moveTo(x + size - 10, y + 5);
-      ctx.lineTo(x + size - 10, y + size - 5);
-      ctx.stroke();
-      break;
-    default:
-      tileBase(ctx, x, y, size, palette[1]);
+  if(state==='title'){
+    const g=ctx.createLinearGradient(0,0,0,720);g.addColorStop(0,'rgba(4,7,20,.05)');g.addColorStop(1,'rgba(4,7,20,.55)');ctx.fillStyle=g;ctx.fillRect(0,0,1280,720);
   }
 }
 
-export function drawSpark(ctx, x, y, size, timestamp) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(timestamp * 0.002);
-  const pulse = 1 + Math.sin(timestamp * 0.008) * 0.08;
-  ctx.scale(pulse, pulse);
-  ctx.shadowColor = '#fff07a';
-  ctx.shadowBlur = 20;
-  const gradient = ctx.createRadialGradient(-size * 0.1, -size * 0.12, 1, 0, 0, size * 0.5);
-  gradient.addColorStop(0, '#ffffff');
-  gradient.addColorStop(0.42, '#fff3a1');
-  gradient.addColorStop(1, '#f6be4b');
-  ctx.fillStyle = gradient;
-  starPath(ctx, size * 0.48, size * 0.2, 8);
-  ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.beginPath();
-  ctx.arc(0, 0, size * 0.1, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
-export function drawKey(ctx, x, y, size) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(-0.15);
-  ctx.strokeStyle = '#ffe16b';
-  ctx.lineWidth = size * 0.16;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.shadowColor = '#ffe16b';
-  ctx.shadowBlur = 12;
-  ctx.beginPath();
-  ctx.arc(-size * 0.15, -size * 0.12, size * 0.2, 0, Math.PI * 2);
-  ctx.moveTo(0, 0);
-  ctx.lineTo(size * 0.35, size * 0.32);
-  ctx.moveTo(size * 0.19, size * 0.16);
-  ctx.lineTo(size * 0.33, size * 0.02);
-  ctx.stroke();
-  ctx.restore();
-}
-
-export function drawCrate(ctx, x, y, size, world) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.shadowColor = 'rgba(0,0,0,.4)';
-  ctx.shadowBlur = 8;
-  ctx.shadowOffsetY = 5;
-  const gradient = ctx.createLinearGradient(-size / 2, -size / 2, size / 2, size / 2);
-  gradient.addColorStop(0, '#e29a61');
-  gradient.addColorStop(1, '#6d3d2b');
-  roundedPath(ctx, -size * 0.4, -size * 0.4, size * 0.8, size * 0.8, 9);
-  ctx.fillStyle = gradient;
-  ctx.fill();
-  ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = world?.color || '#ffe08a';
-  ctx.lineWidth = 4;
-  ctx.stroke();
-  ctx.strokeStyle = '#5a3025';
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(-size * 0.32, -size * 0.32);
-  ctx.lineTo(size * 0.32, size * 0.32);
-  ctx.moveTo(size * 0.32, -size * 0.32);
-  ctx.lineTo(-size * 0.32, size * 0.32);
-  ctx.stroke();
-  ctx.fillStyle = '#ffe08a';
-  starPath(ctx, size * 0.12, size * 0.05, 6);
-  ctx.fill();
-  ctx.restore();
-}
-
-export function drawPip(ctx, x, y, size, timestamp, direction = 1, state = 'idle', contrast = false) {
-  ctx.save();
-  ctx.translate(x, y);
-  const moving = state === 'move';
-  const bob = moving ? Math.sin(timestamp * 0.026) * size * 0.035 : Math.sin(timestamp * 0.004) * size * 0.025;
-  ctx.translate(0, bob);
-  ctx.scale(direction || 1, 1);
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-  ctx.strokeStyle = '#071027';
-  ctx.lineWidth = size * 0.065;
-
-  const scarfLift = moving ? Math.sin(timestamp * 0.019) * size * 0.08 : 0;
-  ctx.fillStyle = '#ff5f80';
-  ctx.beginPath();
-  ctx.moveTo(-size * 0.15, -size * 0.02);
-  ctx.quadraticCurveTo(-size * 0.62, -size * 0.05 - scarfLift, -size * 0.85, size * 0.2 - scarfLift);
-  ctx.lineTo(-size * 0.18, size * 0.27);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  const coat = ctx.createLinearGradient(0, -size * 0.1, 0, size * 0.5);
-  coat.addColorStop(0, contrast ? '#b8ffff' : '#70f4ff');
-  coat.addColorStop(0.55, contrast ? '#4fd9ff' : '#39bde4');
-  coat.addColorStop(1, '#267ab7');
-  ctx.fillStyle = coat;
-  ctx.beginPath();
-  ctx.ellipse(0, size * 0.16, size * 0.31, size * 0.39, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  const footSwing = moving ? Math.sin(timestamp * 0.025) * size * 0.09 : 0;
-  ctx.fillStyle = '#303a60';
-  ctx.beginPath();
-  ctx.ellipse(-size * 0.18 + footSwing, size * 0.53, size * 0.24, size * 0.13, 0, 0, Math.PI * 2);
-  ctx.ellipse(size * 0.18 - footSwing, size * 0.53, size * 0.24, size * 0.13, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = '#fff0cf';
-  ctx.beginPath();
-  ctx.arc(0, -size * 0.25, size * 0.34, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = '#3b4980';
-  ctx.beginPath();
-  ctx.arc(0, -size * 0.29, size * 0.34, Math.PI, 0);
-  ctx.quadraticCurveTo(0, -size * 0.52, -size * 0.34, -size * 0.29);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = '#ffe56d';
-  ctx.shadowColor = '#ffe56d';
-  ctx.shadowBlur = 10;
-  ctx.beginPath();
-  ctx.arc(size * 0.18, -size * 0.58, size * 0.09, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowColor = 'transparent';
-  ctx.stroke();
-
-  ctx.fillStyle = '#11172e';
-  ctx.beginPath();
-  ctx.ellipse(-size * 0.1, -size * 0.24, size * 0.028, size * 0.05, 0, 0, Math.PI * 2);
-  ctx.ellipse(size * 0.1, -size * 0.24, size * 0.028, size * 0.05, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.8)';
-  ctx.beginPath();
-  ctx.arc(-size * 0.09, -size * 0.26, size * 0.011, 0, Math.PI * 2);
-  ctx.arc(size * 0.11, -size * 0.26, size * 0.011, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#c66768';
-  ctx.lineWidth = size * 0.032;
-  ctx.beginPath();
-  ctx.arc(0, -size * 0.16, size * 0.09, 0.1, Math.PI - 0.1);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function enemyEyes(ctx, size, expression = 'round') {
-  ctx.fillStyle = '#10162d';
-  if (expression === 'visor') {
-    roundedPath(ctx, -size * 0.18, -size * 0.1, size * 0.36, size * 0.11, size * 0.05);
-    ctx.fill();
-    return;
+export function drawTile(ctx,kind,x,y,s,theme,t){
+  const idx=THEME_INDEX[theme.theme]??0;
+  atlasFrame(ctx,ART_ASSETS.tileSprites,(kind==='wall'?10:0)+idx,10,128,128,x,y,s,s);
+  if(kind==='wall') return;
+  const map={spikes:15,ice:9,fragile:13,broken:14,teleportA:11,teleportB:12};
+  if(map[kind]!=null){
+    ctx.save();
+    if(kind==='teleportA'||kind==='teleportB'){ctx.translate(x+s/2,y+s/2);ctx.rotate((kind==='teleportA'?1:-1)*Math.sin(t)*.08);atlasFrame(ctx,ART_ASSETS.objectSprites,map[kind],5,160,160,-s*.58,-s*.58,s*1.16,s*1.16);}
+    else atlasFrame(ctx,ART_ASSETS.objectSprites,map[kind],5,160,160,x-s*.08,y-s*.08,s*1.16,s*1.16);
+    ctx.restore();return;
   }
-  ctx.beginPath();
-  ctx.arc(-size * 0.09, -size * 0.05, size * 0.038, 0, Math.PI * 2);
-  ctx.arc(size * 0.09, -size * 0.05, size * 0.038, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-export function drawEnemy(ctx, enemy, x, y, size, timestamp, world) {
-  ctx.save();
-  ctx.translate(x, y + Math.sin(timestamp * 0.006 + enemy.x) * 2);
-  ctx.strokeStyle = '#071028';
-  ctx.lineWidth = 5;
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-  const danger = world.danger;
-  const accent = world.color;
-
-  switch (enemy.type) {
-    case 'scarab':
-      ctx.fillStyle = danger;
-      ctx.beginPath();
-      ctx.ellipse(0, 3, size * 0.34, size * 0.24, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.strokeStyle = accent;
-      ctx.beginPath();
-      ctx.moveTo(0, -size * 0.2);
-      ctx.lineTo(0, size * 0.23);
-      ctx.moveTo(-size * 0.2, -size * 0.15);
-      ctx.lineTo(-size * 0.36, -size * 0.32);
-      ctx.moveTo(size * 0.2, -size * 0.15);
-      ctx.lineTo(size * 0.36, -size * 0.32);
-      ctx.moveTo(-size * 0.25, size * 0.05);
-      ctx.lineTo(-size * 0.4, size * 0.18);
-      ctx.moveTo(size * 0.25, size * 0.05);
-      ctx.lineTo(size * 0.4, size * 0.18);
-      ctx.stroke();
-      enemyEyes(ctx, size);
-      break;
-    case 'crawler':
-      for (let index = -1; index <= 1; index += 1) {
-        ctx.fillStyle = index ? danger : accent;
-        ctx.beginPath();
-        ctx.arc(index * size * 0.22, 0, size * 0.2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
-      enemyEyes(ctx, size);
-      break;
-    case 'slime':
-      ctx.fillStyle = '#61db8d';
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.36, size * 0.22);
-      ctx.quadraticCurveTo(-size * 0.4, -size * 0.24, 0, -size * 0.32);
-      ctx.quadraticCurveTo(size * 0.4, -size * 0.24, size * 0.36, size * 0.22);
-      ctx.quadraticCurveTo(size * 0.18, size * 0.08, 0, size * 0.22);
-      ctx.quadraticCurveTo(-size * 0.18, size * 0.08, -size * 0.36, size * 0.22);
-      ctx.fill();
-      ctx.stroke();
-      enemyEyes(ctx, size);
-      break;
-    case 'hopper':
-      ctx.fillStyle = '#f2b85e';
-      ctx.beginPath();
-      ctx.ellipse(0, -size * 0.04, size * 0.25, size * 0.36, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.18, size * 0.25);
-      ctx.lineTo(-size * 0.36, size * 0.42);
-      ctx.moveTo(size * 0.18, size * 0.25);
-      ctx.lineTo(size * 0.36, size * 0.42);
-      ctx.stroke();
-      enemyEyes(ctx, size);
-      break;
-    case 'turret':
-      ctx.fillStyle = danger;
-      roundedPath(ctx, -size * 0.32, -size * 0.32, size * 0.64, size * 0.64, 9);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = accent;
-      ctx.shadowColor = accent;
-      ctx.shadowBlur = 12;
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.16, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowColor = 'transparent';
-      ctx.stroke();
-      enemyEyes(ctx, size, 'visor');
-      break;
-    case 'ghost':
-      ctx.globalAlpha = 0.84;
-      ctx.fillStyle = '#c6ddff';
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.35, size * 0.3);
-      ctx.lineTo(-size * 0.35, -size * 0.05);
-      ctx.arc(0, -size * 0.05, size * 0.35, Math.PI, 0);
-      ctx.lineTo(size * 0.35, size * 0.3);
-      ctx.lineTo(size * 0.18, size * 0.17);
-      ctx.lineTo(0, size * 0.3);
-      ctx.lineTo(-size * 0.18, size * 0.17);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      enemyEyes(ctx, size);
-      break;
-    case 'mimic':
-      ctx.fillStyle = '#d86bc7';
-      ctx.beginPath();
-      ctx.moveTo(0, -size * 0.4);
-      ctx.lineTo(size * 0.3, -size * 0.18);
-      ctx.lineTo(size * 0.24, size * 0.38);
-      ctx.lineTo(-size * 0.24, size * 0.38);
-      ctx.lineTo(-size * 0.3, -size * 0.18);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.strokeStyle = '#fff';
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.16, -size * 0.05);
-      ctx.lineTo(0, size * 0.08);
-      ctx.lineTo(size * 0.16, -size * 0.05);
-      ctx.stroke();
-      break;
-    case 'drone':
-      ctx.save();
-      ctx.rotate(timestamp * 0.0015);
-      ctx.fillStyle = '#6ce0e9';
-      ctx.beginPath();
-      for (let index = 0; index < 6; index += 1) {
-        const angle = index * Math.PI / 3 - Math.PI / 2;
-        const px = Math.cos(angle) * size * 0.34;
-        const py = Math.sin(angle) * size * 0.34;
-        if (index === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-      ctx.fillStyle = danger;
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.12, 0, Math.PI * 2);
-      ctx.fill();
-      enemyEyes(ctx, size, 'visor');
-      break;
-    default:
-      ctx.fillStyle = danger;
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      enemyEyes(ctx, size);
+  if(kind.startsWith('conveyor')){
+    ctx.save();ctx.translate(x+s/2,y+s/2);const d=kind.replace('conveyor','').toLowerCase();if(d==='down')ctx.rotate(Math.PI/2);if(d==='left')ctx.rotate(Math.PI);if(d==='up')ctx.rotate(-Math.PI/2);atlasFrame(ctx,ART_ASSETS.objectSprites,8,5,160,160,-s*.58,-s*.58,s*1.16,s*1.16);ctx.restore();return;
   }
-  ctx.restore();
-}
-
-export function logo(ctx, x, y, scale = 1) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(scale, scale);
-  text(ctx, 'PIP & THE', 0, -46, 38, '#fff4d6', 'center', 1000);
-  const gradient = ctx.createLinearGradient(-220, 0, 220, 0);
-  gradient.addColorStop(0, '#65f3ff');
-  gradient.addColorStop(0.52, '#ffe56d');
-  gradient.addColorStop(1, '#ff6b9b');
-  ctx.save();
-  ctx.font = '1000 64px ui-rounded, "Trebuchet MS", system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.strokeStyle = '#080d21';
-  ctx.lineWidth = 14;
-  ctx.lineJoin = 'round';
-  ctx.strokeText('PRISM VAULT', 0, 14);
-  ctx.fillStyle = gradient;
-  ctx.fillText('PRISM VAULT', 0, 14);
-  ctx.restore();
-  text(ctx, 'A PIP’S POCKET WORLDS ADVENTURE', 0, 70, 17, '#bdeeff', 'center', 900);
-  ctx.restore();
-}
-
-function comicPanel(ctx, rectangle, rotation, fill, draw) {
-  const { x, y, w, h } = rectangle;
-  ctx.save();
-  ctx.translate(x + w / 2, y + h / 2);
-  ctx.rotate(rotation);
-  ctx.fillStyle = fill;
-  ctx.fillRect(-w / 2, -h / 2, w, h);
-  ctx.strokeStyle = '#11162c';
-  ctx.lineWidth = 8;
-  ctx.strokeRect(-w / 2, -h / 2, w, h);
-  ctx.save();
-  ctx.globalAlpha = 0.12;
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 1;
-  for (let yy = -h / 2; yy < h / 2; yy += 9) {
-    ctx.beginPath();
-    ctx.moveTo(-w / 2, yy);
-    ctx.lineTo(w / 2, yy);
-    ctx.stroke();
+  if(kind==='hazard'){
+    const f=6;ctx.save();ctx.globalCompositeOperation='screen';atlasFrame(ctx,ART_ASSETS.vfxSprites,f,4,160,160,x-s*.15,y-s*.15,s*1.3,s*1.3,false,.86);ctx.restore();
   }
-  ctx.restore();
-  draw(w, h);
+}
+
+export function drawHero(ctx,x,y,s,t,dir={x:1,y:0},mood='ready'){
+  const special=mood==='heroic'||mood==='victory';
+  const defeated=mood==='defeat';
+  const hurt=mood==='hurt';
+  const moving=mood==='moving';
+  const frame=special?18+(Math.floor(t*3)%4):defeated?23:hurt?22:moving?6+(Math.floor(t*10)%6):(Math.floor(t*4)%6);
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.42)';ctx.shadowBlur=8;ctx.shadowOffsetY=5;
+  atlasFrame(ctx,ART_ASSETS.heroSprites,frame,6,160,160,x-s*.18,y-s*.22,s*1.36,s*1.36,dir.x<0);
   ctx.restore();
 }
 
-export function comic(ctx, page, timestamp) {
-  ctx.fillStyle = '#fff1cf';
-  ctx.fillRect(0, 0, 1280, 720);
-  if (page === 0) {
-    comicPanel(ctx, { x: 45, y: 45, w: 720, h: 300 }, -0.01, '#172449', (w, h) => {
-      text(ctx, 'THE PRISM VAULT HELD THE FIRST LIGHT', 0, -h * 0.28, 25, '#fff1cf', 'center', 1000);
-      drawSpark(ctx, 0, 25, 120, timestamp);
-    });
-    comicPanel(ctx, { x: 790, y: 45, w: 445, h: 300 }, 0.015, '#28376d', (w, h) => {
-      text(ctx, 'BARON NULL', 0, -h * 0.31, 30, '#ff748f', 'center', 1000);
-      ctx.fillStyle = '#070a17';
-      ctx.beginPath();
-      ctx.arc(0, 35, 90, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ff5e7f';
-      ctx.beginPath();
-      ctx.arc(-30, 15, 8, 0, Math.PI * 2);
-      ctx.arc(30, 15, 8, 0, Math.PI * 2);
-      ctx.fill();
-      text(ctx, '“LIGHT IS ONLY A LOCK.”', 0, 126, 18, '#fff1cf', 'center', 900);
-    });
-    comicPanel(ctx, { x: 45, y: 370, w: 1190, h: 300 }, -0.008, '#172449', (w, h) => {
-      text(ctx, 'CRACK!', 0, -h * 0.28, 64, '#ffe56d', 'center', 1000);
-      for (let index = 0; index < 8; index += 1) drawSpark(ctx, (index - 3.5) * 120, 35 + Math.sin(index) * 35, 55, timestamp + index * 120);
-      text(ctx, 'TEN GALLERIES FELL DARK.', 0, 120, 25, '#fff1cf', 'center', 1000);
-    });
-  } else {
-    comicPanel(ctx, { x: 45, y: 45, w: 560, h: 625 }, -0.012, '#172449', (w, h) => {
-      drawPip(ctx, 0, 80, 260, timestamp, 1, 'idle');
-      text(ctx, 'THE SMALLEST KEEPER', 0, -h * 0.37, 28, '#fff1cf', 'center', 1000);
-      text(ctx, 'WITH THE BRIGHTEST THREAD', 0, -h * 0.3, 21, '#bdeeff', 'center', 900);
-    });
-    comicPanel(ctx, { x: 630, y: 45, w: 605, h: 295 }, 0.012, '#28376d', (w, h) => {
-      text(ctx, '“I’LL BRING IT HOME.”', 0, -h * 0.15, 30, '#fff1cf', 'center', 1000);
-      ctx.fillStyle = '#ff5f80';
-      ctx.beginPath();
-      ctx.moveTo(-210, 90);
-      ctx.quadraticCurveTo(0, -20, 230, 80);
-      ctx.lineTo(40, 130);
-      ctx.closePath();
-      ctx.fill();
-    });
-    comicPanel(ctx, { x: 630, y: 365, w: 605, h: 305 }, -0.01, '#172449', (w, h) => {
-      logo(ctx, 0, -10, 0.68);
-      text(ctx, '100 ROOMS. ONE BRIGHT THREAD.', 0, h * 0.3, 22, '#fff1cf', 'center', 900);
-    });
+export function drawEnemy(ctx,e,x,y,s,t){
+  const row=ENEMY_ROW[e.type]??0;const frame=Math.floor(t*(e.type==='turret'?3:7)+(e.phase??0))%4;const index=row*4+frame;const flip=(e.dir??1)<0;
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=8;ctx.shadowOffsetY=5;
+  atlasFrame(ctx,ART_ASSETS.enemySprites,index,4,160,160,x-s*.2,y-s*.2,s*1.4,s*1.4,flip);
+  ctx.restore();
+}
+
+export function drawEntity(ctx,e,x,y,s,t,theme,active=true){
+  if(e.kind==='player') return drawHero(ctx,x,y,s,t,e.dirVec||e.dir||{x:1,y:0},e.motion?'moving':e.mood);
+  if(e.kind==='enemy') return drawEnemy(ctx,e,x,y,s,t);
+  if(e.kind==='shard'){
+    const frame=(e.variant??0)%4,pulse=1+Math.sin(t*5+(e.variant??0))*.06;ctx.save();ctx.translate(x+s/2,y+s/2);ctx.rotate(Math.sin(t*.8+(e.variant??0))*.12);ctx.shadowColor=theme.accent;ctx.shadowBlur=18;atlasFrame(ctx,ART_ASSETS.collectibleSprites,frame,4,160,160,-s*.52*pulse,-s*.52*pulse,s*1.04*pulse,s*1.04*pulse);ctx.restore();return;
   }
-  text(ctx, page === 0 ? 'PAGE 1 / 2  ·  CLICK OR PRESS ENTER' : 'PAGE 2 / 2  ·  BEGIN THE RESCUE', 640, 697, 18, '#11162c', 'center', 1000);
+  if(e.kind==='key'){atlasFrame(ctx,ART_ASSETS.collectibleSprites,4+(e.variant??0)%4,4,160,160,x-s*.12,y-s*.12,s*1.24,s*1.24);return;}
+  const themeIndex=THEME_INDEX[theme.theme]??0;
+  const map={crate:themeIndex%2,plate:active?17:5,gate:6,door:7,exit:active?3:10};
+  const idx=map[e.kind];
+  if(idx!=null){ctx.save();if(e.kind==='exit'&&!active)ctx.globalAlpha=.48;if(e.kind==='plate'&&active){ctx.shadowColor=COLORS.gold;ctx.shadowBlur=16;}atlasFrame(ctx,ART_ASSETS.objectSprites,idx,5,160,160,x-s*.13,y-s*.13,s*1.26,s*1.26);ctx.restore();}
+}
+
+export function drawButton(ctx,b,hover=false,pressed=false){
+  const disabled=!!b.disabled;const active=hover&&!disabled;const lift=pressed?1:active?-3:0;
+  ctx.save();ctx.translate(0,lift);ctx.globalAlpha=disabled?.48:1;ctx.shadowColor=disabled?'transparent':'rgba(0,0,0,.40)';ctx.shadowBlur=active?22:16;ctx.shadowOffsetY=pressed?4:8;
+  atlasFrame(ctx,ART_ASSETS.uiAtlas,active?3:2,4,320,160,b.x,b.y,b.w,b.h);
+  if(b.fill){const g=ctx.createLinearGradient(b.x,b.y,b.x,b.y+b.h);g.addColorStop(0,b.fill);g.addColorStop(1,b.fill2??b.fill);ctx.globalCompositeOperation='source-atop';ctx.globalAlpha*=active?.58:.42;ctx.fillStyle=g;ctx.fillRect(b.x,b.y,b.w,b.h);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=disabled?.48:1;}
+  if(b.focused&&!disabled){ctx.shadowColor=b.accent??COLORS.cyan;ctx.shadowBlur=12;ctx.strokeStyle=b.accent??COLORS.cyan;ctx.lineWidth=3;rr(ctx,b.x-4,b.y-4,b.w+8,b.h+8,19);ctx.stroke();ctx.shadowBlur=0;ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1;rr(ctx,b.x-1,b.y-1,b.w+2,b.h+2,17);ctx.stroke();}
+  fittedText(ctx,b.label,b.x+b.w/2,b.y+b.h/2+1,b.w-24,b.size||24,disabled?'#7f879f':active?COLORS.ink:'#fff','center',900,10);ctx.restore();
+}
+
+export function drawLogo(ctx,x,y,scale=1){
+  if(!ready(ART_ASSETS.logo))throw new Error('Required production logo is unavailable.');const w=560*scale,h=202*scale;ctx.save();ctx.shadowColor='rgba(0,0,0,.65)';ctx.shadowBlur=18;ctx.drawImage(ART_ASSETS.logo,x-w/2,y-h/2,w,h);ctx.restore();
+}
+
+export function drawKeyArt(ctx,t,theme){if(!ready(ART_ASSETS.keyArt))throw new Error('Required production key art is unavailable.');ctx.drawImage(ART_ASSETS.keyArt,0,0,1600,900,0,0,1280,720);}
+
+export function drawComicPanel(ctx,x,y,w,h,index,t){
+  const image=ART_ASSETS[`comic${index+1}`];if(!ready(image))throw new Error(`Required comic panel ${index+1} is unavailable.`);ctx.save();rr(ctx,x,y,w,h,12);ctx.clip();ctx.drawImage(image,0,0,1280,500,x,y,w,h);ctx.restore();ctx.strokeStyle=COLORS.ink;ctx.lineWidth=6;rr(ctx,x,y,w,h,12);ctx.stroke();
 }

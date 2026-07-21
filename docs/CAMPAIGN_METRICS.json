@@ -1,0 +1,15 @@
+{
+  "rooms": 100,
+  "uniqueWallTopologies": 100,
+  "minPairwiseWallDistance": 0.16666666666666666,
+  "optimalTurns": {
+    "min": 20,
+    "max": 95,
+    "avg": 48.63
+  },
+  "solverStates": {
+    "min": 130,
+    "max": 99491,
+    "avg": 3092.13
+  }
+}

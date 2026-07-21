@@ -1,45 +1,73 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#11162f">
-  <meta name="description" content="Pip & the Prism Vault — a 100-room single-screen puzzle arcade adventure.">
-  <title>Pip & the Prism Vault</title>
-  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#10152f" />
+  <meta name="description" content="Pip & the Prism Vault — a polished 100-room puzzle adventure with production artwork, offline play, and resilient Cloudflare delivery." />
+  <meta name="color-scheme" content="dark" />
+  <meta name="application-name" content="Pip & the Prism Vault" />
+  <meta property="og:title" content="Pip & the Prism Vault" />
+  <meta property="og:description" content="A handcrafted 100-room puzzle adventure with a complete commercial art pack." />
+  <meta property="og:image" content="assets/commercial/og-image.webp" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Pip &amp; the Prism Vault" />
+  <meta name="twitter:description" content="A handcrafted 100-room puzzle adventure with a complete commercial art pack." />
+  <meta name="twitter:image" content="assets/commercial/og-image.webp" />
+  <meta name="app-version" content="__APP_VERSION__" />
+  <meta name="build-revision" content="__BUILD_REVISION__" />
+  <title>Pip &amp; the Prism Vault</title>
+  <link rel="icon" href="assets/commercial/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/commercial/app-icon-192.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="src/style.css" />
 </head>
-<body>
-  <main class="shell">
-    <div class="stage-wrap" aria-label="Pip and the Prism Vault game">
-      <canvas
-        id="game"
-        width="1280"
-        height="720"
-        tabindex="0"
-        role="application"
-        aria-label="Pip and the Prism Vault. Use arrow keys or WASD to move, Z to undo, R to restart, H for a hint, and Escape to pause."
-      ></canvas>
-      <div id="live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-      <div id="touch-controls" class="touch-controls" hidden aria-label="Touch game controls">
-        <button type="button" data-action="up" aria-label="Move up">▲</button>
-        <button type="button" data-action="left" aria-label="Move left">◀</button>
-        <button type="button" data-action="down" aria-label="Move down">▼</button>
-        <button type="button" data-action="right" aria-label="Move right">▶</button>
-        <button type="button" data-action="undo">Undo</button>
-        <button type="button" data-action="restart">Retry</button>
-      </div>
+<body data-boot="loading">
+  <section id="boot-overlay" role="status" aria-live="polite" aria-label="Loading Pip and the Prism Vault">
+    <img src="assets/commercial/logo.png" alt="Pip and the Prism Vault" width="560" height="202" />
+    <div class="boot-copy">
+      <strong>Opening the Prism Vault</strong>
+      <progress id="boot-progress" max="100" value="0">0%</progress>
+      <span id="boot-message">Preparing production artwork…</span>
+      <button id="boot-retry" type="button" hidden>Reload game</button>
     </div>
-    <p class="keyboard-help">Move: arrows / WASD · Undo: Z · Restart: R · Hint: H · Pause: Esc · Gamepad supported</p>
-    <p class="rotate-help" aria-hidden="true">Rotate your device for the full Vault view.</p>
+  </section>
+  <main id="app" aria-label="Pip and the Prism Vault game">
+    <canvas
+      id="game"
+      width="1280"
+      height="720"
+      tabindex="0"
+      role="application"
+      aria-label="Pip and the Prism Vault. Use arrow keys or WASD to move, Tab to navigate menus, Z to undo, R to retry, and Escape to pause."
+      aria-describedby="status"
+      aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight W A S D Enter Space Z R H M F Escape Tab"
+    ></canvas>
+    <p id="status" class="sr-only" aria-live="polite">Pip and the Prism Vault loaded.</p>
+    <section id="touch-controls" aria-label="Touch controls">
+      <div class="dpad">
+        <button data-key="ArrowUp" aria-label="Move up">▲</button>
+        <button data-key="ArrowLeft" aria-label="Move left">◀</button>
+        <button data-key="ArrowDown" aria-label="Move down">▼</button>
+        <button data-key="ArrowRight" aria-label="Move right">▶</button>
+      </div>
+      <div class="actions">
+        <button data-key="z" aria-label="Undo">UNDO</button>
+        <button data-key="r" aria-label="Restart">RETRY</button>
+        <button data-key="h" aria-label="Show hint">HINT</button>
+        <button data-key="Escape" aria-label="Pause">PAUSE</button>
+      </div>
+    </section>
   </main>
-  <noscript>This game needs JavaScript enabled.</noscript>
-  <script type="module" src="src/game.js"></script>
-  <script>
-    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
-    }
-  </script>
+  <aside id="system-banner" role="status" aria-live="polite" hidden>
+    <span id="system-message"></span>
+    <div>
+      <button id="system-action" type="button" hidden>Reload now</button>
+      <button id="system-dismiss" type="button" aria-label="Dismiss message">Dismiss</button>
+    </div>
+  </aside>
+  <noscript>This game requires JavaScript.</noscript>
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>

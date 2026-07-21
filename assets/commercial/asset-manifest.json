@@ -1,0 +1,140 @@
+{
+  "version": "3.6.0-pages-resilience-polish",
+  "hero": {
+    "cell": [
+      160,
+      160
+    ],
+    "cols": 6,
+    "rows": 4,
+    "states": {
+      "idle": [
+        0,
+        5
+      ],
+      "walk": [
+        6,
+        11
+      ],
+      "push": [
+        12,
+        17
+      ],
+      "special": [
+        18,
+        23
+      ]
+    }
+  },
+  "enemies": {
+    "cell": [
+      160,
+      160
+    ],
+    "cols": 4,
+    "rows": 8,
+    "order": [
+      "scarab",
+      "crawler",
+      "slime",
+      "hopper",
+      "turret",
+      "drone",
+      "mimic",
+      "ghost"
+    ],
+    "framesPerEnemy": 4
+  },
+  "tiles": {
+    "cell": [
+      128,
+      128
+    ],
+    "cols": 10,
+    "rows": 2,
+    "row0": "floor",
+    "row1": "wall"
+  },
+  "objects": {
+    "cell": [
+      160,
+      160
+    ],
+    "cols": 5,
+    "rows": 4
+  },
+  "collectibles": {
+    "cell": [
+      160,
+      160
+    ],
+    "cols": 4,
+    "rows": 2
+  },
+  "vfx": {
+    "cell": [
+      160,
+      160
+    ],
+    "cols": 4,
+    "rows": 2
+  },
+  "provenance": "Frame-aligned illustrated hero/enemy/collectible atlases and ten detailed chapter backdrops derived from the approved final art source.",
+  "screens": [
+    "title",
+    "comic",
+    "levelSelect",
+    "playing",
+    "paused",
+    "victory",
+    "defeat",
+    "settings",
+    "help",
+    "credits",
+    "chapterComplete",
+    "complete"
+  ],
+  "shippingFiles": [
+    "app-icon-192.png",
+    "app-icon-512.png",
+    "app-icon-maskable-512.png",
+    "app-icon-maskable-192.png",
+    "favicon.png",
+    "og-image.webp",
+    "key-art.webp",
+    "logo.png",
+    "hero-sprites.png",
+    "enemy-sprites.png",
+    "object-sprites.png",
+    "collectible-sprites.png",
+    "tile-sprites.png",
+    "vfx-sprites.png",
+    "ui-atlas.png",
+    "backdrop-01.webp",
+    "backdrop-02.webp",
+    "backdrop-03.webp",
+    "backdrop-04.webp",
+    "backdrop-05.webp",
+    "backdrop-06.webp",
+    "backdrop-07.webp",
+    "backdrop-08.webp",
+    "backdrop-09.webp",
+    "backdrop-10.webp",
+    "comic-1.webp",
+    "comic-2.webp",
+    "comic-3.webp",
+    "comic-4.webp",
+    "comic-5.webp",
+    "install-wide.webp",
+    "install-narrow.webp"
+  ],
+  "qualityGate": {
+    "failFastLoading": true,
+    "proceduralFallbacks": false,
+    "atlasCellsValidated": true,
+    "headlessScreenRenderSmoke": true,
+    "contentHashedOfflineCache": true,
+    "cloudflarePagesHealthSmoke": true,
+    "transient5xxOfflineRecovery": true
+  }
+}

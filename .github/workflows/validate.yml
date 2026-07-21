@@ -1,9 +1,9 @@
 name: Validate web game
 
 on:
-  pull_request:
   push:
-    branches: [main, agent/polish-all]
+    branches: [main, 'agent/**']
+  pull_request:
 
 permissions:
   contents: read
@@ -11,11 +11,13 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run check
+      - run: npx wrangler deploy --config wrangler.worker.jsonc --dry-run

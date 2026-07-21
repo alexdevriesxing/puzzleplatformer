@@ -1,14 +1,94 @@
 {
   "name": "Pip & the Prism Vault",
   "short_name": "Prism Vault",
-  "description": "A 100-room single-screen puzzle arcade adventure.",
+  "description": "A commercial-art 100-room single-screen puzzle arcade adventure starring Pip the Sparkkeeper.",
   "start_url": "./",
   "scope": "./",
-  "display": "fullscreen",
+  "display": "standalone",
   "orientation": "landscape",
   "background_color": "#080b18",
-  "theme_color": "#11162f",
+  "theme_color": "#10152f",
   "icons": [
-    {"src":"assets/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+    {
+      "src": "assets/commercial/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/commercial/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/commercial/app-icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/commercial/app-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "./",
+  "lang": "en",
+  "dir": "ltr",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "fullscreen"
+  ],
+  "categories": [
+    "games",
+    "entertainment"
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Continue campaign",
+      "short_name": "Continue",
+      "description": "Resume the Prism Vault campaign.",
+      "url": "./?action=continue",
+      "icons": [
+        {
+          "src": "assets/commercial/app-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Level directory",
+      "short_name": "Levels",
+      "description": "Open the Prism Vault room directory.",
+      "url": "./?action=levels",
+      "icons": [
+        {
+          "src": "assets/commercial/app-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/commercial/install-wide.webp",
+      "sizes": "1280x720",
+      "type": "image/webp",
+      "form_factor": "wide",
+      "label": "Pip & the Prism Vault title and campaign menu"
+    },
+    {
+      "src": "assets/commercial/install-narrow.webp",
+      "sizes": "720x1280",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Pip holding a Prism Spark in the Vault"
+    }
   ]
 }

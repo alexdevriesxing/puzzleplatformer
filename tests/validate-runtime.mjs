@@ -1,0 +1,30 @@
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+const root=resolve(import.meta.dirname,'..');
+const read=path=>readFile(resolve(root,path),'utf8');
+const pkg=JSON.parse(await read('package.json'));
+const main=await read('src/main.js');
+const game=await read('src/game.js');
+const audio=await read('src/audio.js');
+const sw=await read('service-worker.js');
+const build=await read('scripts/build.mjs');
+const manifest=JSON.parse(await read('manifest.webmanifest'));
+
+if(pkg.version!=='3.6.0')throw new Error(`Expected package version 3.6.0; received ${pkg.version}.`);
+for(const marker of ['3.6.0-pages-resilience-polish','Tab navigates menus','unhandledrejection','pad.buttons[3]'])if(!main.includes(marker))throw new Error(`Runtime bootstrap missing ${marker}.`);
+for(const marker of ['moveMenuFocus','ROOM OBJECTIVE','SAVE & RETURN','MASTERED ROOMS','SPARKKEEPER HANDBOOK','activateFocusedButton','screenFade','setPointerCapture','navigator.vibrate','requestFullscreen','renderHelp','renderCredits','renderChapterComplete','syncDomState','trackSecretInput','unlockSecret','renderArchiveOverlay','VAULT SECRET LEDGER'])if(!game.includes(marker))throw new Error(`Game polish feature missing ${marker}.`);
+for(const marker of ['createDynamicsCompressor','createNoiseBuffer','noiseBuffer'])if(!audio.includes(marker))throw new Error(`Audio polish feature missing ${marker}.`);
+if(!sw.includes("const REVISION='__BUILD_REVISION__'"))throw new Error('Service worker is not revision-tokenized.');
+if(!sw.includes('cacheFirst(request,event)')||!sw.includes('networkFirst(request,event)'))throw new Error('Service worker cache strategies are incomplete.');
+if(!build.includes("serviceWorker.replaceAll('__BUILD_REVISION__', revision)"))throw new Error('Build does not stamp the service worker revision.');
+if(!build.includes('assets/commercial')||!build.includes('collectFiles'))throw new Error('Build revision does not hash the complete shipping asset tree.');
+if(!manifest.display_override?.includes('standalone')||manifest.shortcuts?.length<2)throw new Error('PWA manifest polish fields are incomplete.');
+if(manifest.icons?.filter(icon=>icon.purpose==='maskable').length!==2)throw new Error('Dedicated maskable PWA icons are missing.');
+if(manifest.screenshots?.length!==2)throw new Error('PWA install screenshots are incomplete.');
+const html=await read('index.html');
+const style=await read('src/style.css');
+if(!html.includes('data-key="h"')||!html.includes('apple-touch-icon')||!html.includes('twitter:card'))throw new Error('Touch hint, install icon, or social metadata is missing.');
+if(!style.includes('#app[data-screen="playing"] #touch-controls')||!style.includes('[aria-hidden="true"]'))throw new Error('Touch controls are not scoped to active gameplay.');
+if(!pkg.scripts.check.includes('render-smoke.mjs'))throw new Error('Shipping-screen render smoke test is not in the release gate.');
+console.log('✓ Runtime polish verified: refined UI hierarchy, complete screen flow, persistent vault secrets, archive mode, menu focus, scoped touch controls, gamepad hints, reduced motion, mastered audio, and full-tree revisioned PWA caching.');

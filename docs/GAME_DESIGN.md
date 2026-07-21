@@ -1,121 +1,170 @@
-# Game Design Document — Pip & the Prism Vault
-
-## Product statement
-
-A premium-feeling, single-screen puzzle arcade game in which every room communicates a compact idea, every enemy follows a learnable rule, and every action remains immediately reversible through undo. The game celebrates the legibility and economy of classic 8-bit and 16-bit design while using modern animation, presentation, accessibility, and audio polish.
+# Game Design — Pip & the Prism Vault
 
 ## Series foundation
 
-**Series:** Pip’s Pocket Worlds  
-**Game one:** Pip & the Prism Vault  
-**Hero:** Pip, a small Sparkkeeper with a cyan coat, coral scarf, moon-cap, and visible cap light  
-**Core promise:** one consistent hero, one readable visual language, and a new puzzle vocabulary in every game
+**Series:** *Pip’s Pocket Worlds*  
+**Game one:** *Pip & the Prism Vault*  
+**Format:** single-screen puzzle arcade  
+**Campaign:** 100 rooms, ten chapters, ten rooms per chapter  
+**Target session:** 45 seconds to four minutes per room  
+**Target audience:** players who enjoy readable systems, compact spatial puzzles, deterministic enemies, collectable mastery grades, and expressive cartoon presentation
 
-Pip must remain recognizable in silhouette at tiny scale. The cap light, scarf, coat proportions, face construction, and victory language are canonical series elements. Future games may change tools, environments, and movement rules, but not Pip’s core identity.
+The series is built around one instantly recognizable hero, one highly readable control language, and different “pocket world” rule sets. Later games can shift toward puzzle platforming, gravity manipulation, digging, light routing, or vehicle puzzles while keeping Pip’s silhouette, scarf, prism badge, animation grammar, UI voice, and musical motif.
+
+## Hero: Pip the Sparkkeeper
+
+Pip is a small clockwork fox with a coral scarf, blue work suit, cream muzzle, amber fur, and glowing cyan prism badge. His design priorities are:
+
+1. **Readable at 32–48 pixels.** Large ears, rounded head, bright scarf, dark boots, and diamond badge survive small rendering sizes.
+2. **Expressive without dialogue portraits.** Blink, ear angle, scarf motion, body squash, and face changes convey confidence, surprise, defeat, and victory.
+3. **Reusable across games.** The suit and badge support equipment attachments without changing Pip’s central silhouette.
+4. **Friendly under pressure.** Fail states are comic and recoverable rather than punishing. Undo is part of Pip’s identity: a Sparkkeeper studies, rewinds, and tries again.
+
+### Character voice
+
+Pip does not need long dialogue. UI copy should be warm, clever, and mechanically helpful. Defeat lines are playful rather than mocking. Hints are direct enough to restore momentum without giving exact move sequences.
 
 ## Story
 
-The Prism Vault is a living museum that stores the first light of a hundred pocket worlds. Baron Null fractures the Prism Heart, scatters its Sparks through ten galleries, and activates the Vault’s defensive exhibits. Pip carries the last clean thread of light in a glowing scarf and enters the rearranged museum alone.
+The Prism Vault stabilizes a network of miniature worlds by housing the Prism Heart. Baron Null steals the Heart because he finds perfect order boring. The Heart fractures into one hundred Sparks, each trapped in a single-screen chamber as the Vault’s museum wings distort around them.
 
-The opening is told in two comic-book pages. Each chapter is framed as a wing of the museum. The final room restores the Prism Heart, returns morning to the Vault, and reveals a distant clockwork moon as the next series destination.
+Pip travels from the Clockwork Foyer to the Prism Core, reactivating lifts and recovering three Sparks per room. The finale restores the Heart, but Baron Null escapes through a pocket-sized fracture, establishing a recurring antagonist without undercutting the campaign’s resolution.
+
+The chapter order tells a clear escalation story:
+
+1. The Vault’s familiar brass machinery wakes.
+2. Living exhibits overgrow their enclosures.
+3. Climate controls freeze entire galleries.
+4. Foundries begin manufacturing hostile machines.
+5. Teleport research tears rooms into unstable pairs.
+6. The archive itself becomes animate.
+7. The Orrery opens onto ghost-lit voids.
+8. Flooded exhibits strain the Vault’s pumps.
+9. Null’s elite guard concentrates at the Citadel.
+10. Every learned rule combines inside the Prism Core.
 
 ## Core loop
 
-1. Read the room and identify the exit, Sparks, mechanisms, and enemy tells.
-2. Move one tile. The room then resolves automatic floor motion and enemy turns.
-3. Collect all three Prism Sparks.
-4. Manipulate keys, crates, plates, gates, teleporters, and terrain in the correct order.
-5. Reach the active lift.
-6. Earn one to three stars based on the room par, then continue or replay.
+1. Read the room: Sparks, lift, walls, mechanisms, enemies, and floor rules.
+2. Make one cardinal move.
+3. Resolve pushes, doors, floor movement, teleportation, collection, enemy turns, and turret pulses.
+4. Use Undo freely to test a hypothesis.
+5. Collect all three Sparks.
+6. Enter the active lift.
+7. Earn one to three stars based on turn efficiency.
+8. Continue immediately or replay for mastery.
 
-Undo is a first-class action rather than a punishment reducer. The player is expected to test hypotheses, rewind, and refine.
+The game is deterministic. Enemies move after Pip and expose clear cadences. This preserves the planning appeal of a turn-based puzzle while the presentation remains lively and arcade-like.
 
-## Rules of clarity
+## Rules and mechanics
 
-- Player input is always resolved before enemy movement.
-- Enemies use deterministic, chapter-consistent rules.
-- A tile’s silhouette and color communicate its function before decoration.
-- Critical objectives are never hidden behind cosmetic detail.
-- The exit activates only after all three Sparks are collected.
-- Hazards use warm warning colors; traversable guidance uses cyan or gold.
-- Every room has a structural route and a mechanically validated solution.
+### Universal
 
-## Campaign arc
+- Pip moves one orthogonal cell per turn.
+- Three Prism Sparks must be collected before the lift activates.
+- Undo restores the complete prior turn state, including tiles, enemies, keys, crates, gates, and turn count.
+- Restart is instant.
+- Hazards cause a comic defeat and preserve access to Undo.
+- A key opens one door.
+- Crates can be pushed but not pulled.
+- Any crate or Pip standing on a sun plate powers the room’s gates.
 
-### 1. Clockwork Foyer
-Introduces movement, Sparks, exit activation, patrol timing, undo, and restart. Rooms are spacious and use simple vertical wall bands. Scarabs and crawlers establish the move-after-you rhythm.
+### Floor systems
 
-### 2. Mosslight Conservatory
-Introduces keys and doors. Early rooms place the key directly before the lock; later rooms position optional branches and enemies so route ordering matters.
+- **Ice:** continues Pip in the incoming direction until a non-ice stop or obstruction.
+- **Conveyors:** move Pip one additional cell in the arrow direction after the manual move.
+- **Fragile floor:** collapses after Pip leaves it, permanently changing the route until Undo or restart.
+- **Teleport coils:** paired cyan and violet coils preserve Pip’s current facing and move him between distant room regions.
+- **Spikes and world hazards:** passable but lethal, which makes enemy timing and forced movement meaningful.
 
-### 3. Glacier Gallery
-Introduces push-only crates, pressure plates, and gates. Every crate sequence is placed on a validated straight route segment, preserving pushing space and avoiding accidental deadlocks in the teaching arc.
+### Enemy roster
 
-### 4. Ember Foundry
-Introduces ice commitment and spike avoidance. The player learns that a safe tile can still be a poor stopping point.
-
-### 5. Storm Laboratory
-Introduces conveyors and stationary turrets. Turrets fire on a three-turn rhythm and display a visible line before a charged shot.
-
-### 6. Infinite Library
-Introduces fragile floors that crack when left and then collapse. Ghosts ignore internal walls, shifting attention from maze geometry to timing.
-
-### 7. Moonlit Orrery
-Introduces paired teleport coils. Coils preserve the player’s strategic direction while changing spatial context.
-
-### 8. Sunken Aquarium
-Introduces lethal water pockets and safe bridge lanes. Drones create circular movement pressure while slimes approach on alternate turns.
-
-### 9. Obsidian Citadel
-Combines locks, gates, fragile paths, and dangerous enemy patterns. Rooms are layered so the player solves one dependency at a time.
-
-### 10. Prism Core
-Combines the whole vocabulary. The final sequence is fast, bright, and celebratory without abandoning deterministic rules.
-
-## Enemy design
-
-| Enemy | Rule | Player lesson |
+| Enemy | Readable rule | Design use |
 |---|---|---|
-| Scarab | Moves horizontally; reverses at obstacles | Read patrol lanes |
-| Crawler | Moves vertically; reverses at obstacles | Use perpendicular timing |
-| Slime | Moves toward Pip every second turn | Exploit tempo gaps |
-| Hopper | Attempts a two-tile jump every second turn | Avoid apparent safe distance |
-| Turret | Fires down a clear row or column every third turn | Count and use cover |
-| Ghost | Moves through internal walls every second turn | Geometry is not always protection |
-| Mimic | Mirrors Pip’s latest direction | Manipulate reflected intent |
-| Drone | Follows a rotating directional cycle | Predict loops and intersections |
+| Brass Scarab | Patrols horizontally and reverses at blockers | Basic timing and lane control |
+| Tide Crawler | Patrols vertically and reverses at blockers | Intersections and cross-lane timing |
+| Moss Slime | Chases every other turn | Slow pressure and route commitment |
+| Spring Hopper | Moves twice on its active cadence | Long-lane prediction |
+| Null Turret | Fires on a three-turn pulse with line-of-sight blocking | Turn-count planning and cover |
+| Archive Ghost | Moves through walls every other turn | Soft time limit and spatial pressure |
+| Mimic Chest | Sleeps until Pip approaches, then chases | Surprise that becomes deterministic |
+| Arc Drone | Rotates through cardinal directions | Cyclic movement and crowded rooms |
+
+No enemy exists only as decoration. Each has a distinct silhouette, color family, cadence, and puzzle role.
+
+## Difficulty curve
+
+Every ten-room chapter follows a consistent teaching rhythm while changing the active rule set:
+
+1. **Arrival:** low-pressure visual introduction.
+2. **Read:** route and floor-rule recognition.
+3. **Key:** key/door planning.
+4. **Weight:** crate/plate/gate planning.
+5. **Enemy:** chapter enemy cadence.
+6. **Combine:** two learned concepts together.
+7. **Commit:** irreversible or forced-movement route.
+8. **Timing:** enemy and environment synchronization.
+9. **Exam:** dense but fair chapter test.
+10. **Crown:** mastery room that previews the next chapter’s pressure.
+
+The first three chapters prioritize teaching and confidence. Chapters four through eight introduce stronger timing pressure. Chapters nine and ten combine the full roster. Undo ensures experimentation remains inviting even when a room is complex.
+
+## Room construction
+
+Rooms use an 18×11 grid framed by an 864×528 playfield. Ten authored spatial blueprints establish distinct lane, quadrant, fortress, crossing, and gauntlet compositions. Each room then applies a fixed chapter/stage specification: start and exit, Spark positions, key/door pair, crate/plate/gate relationship, deterministic enemy roster, hazard ribbon, themed floor rules, hint, par value, and unique name.
+
+This is not endless random generation. The same room number always materializes the same layout and rule combination. Fixed seeds are used only to make authored decoration/hazard placement reproducible.
 
 ## Scoring and progression
 
-Each room awards:
+- **Three stars:** solve at or under par.
+- **Two stars:** solve within 135% of par.
+- **One star:** complete the room.
+- Best turn count is stored per room.
+- Completing a room unlocks the next room.
+- Chapter directory shows lock state, best record, and stars.
+- Progress is stored locally and degrades gracefully if browser storage is unavailable.
 
-- **3 stars:** at or under par
-- **2 stars:** up to 145% of par
-- **1 star:** completion
+Stars support replay without blocking story progress. The full campaign remains finishable without optimizing every room.
 
-Progress, stars, and best moves are stored locally. Chapters unlock sequentially. Rooms can be replayed immediately from the chapter directory.
+## UI flow
 
-## Failure and recovery
+1. Title/key art
+2. Begin or continue campaign
+3. Five-panel comic intro on first play
+4. Room banner with chapter, room name, and contextual hint
+5. Gameplay HUD: Sparks, keys, turns, par, Undo, Pause
+6. Victory: room name, stars, turn record, next/replay/directory
+7. Defeat: readable cause, retry, Undo, directory
+8. Level directory: ten chapter pages, ten room cards each
+9. Options: audio, reduced motion, high contrast
+10. Campaign ending
 
-Defeat occurs on enemy contact, a charged turret line, spikes, water, or a collapsed pit. The defeat screen foregrounds learning rather than punishment and offers undo when history is available, otherwise restart or directory.
+All major actions are available by keyboard and pointer. Touch controls appear on mobile-class devices.
 
-## Accessibility
+## Production architecture
 
-- full keyboard and touch support
-- no sound-dependent information
-- persistent sound toggle
-- reduced-motion mode
-- high-contrast overlay
-- live-region announcements for room starts and pickups
-- large logical hit targets and a fixed 16:9 composition
-- deterministic systems that permit deliberate pacing
+The first pass is a dependency-free Canvas 2D game using ES modules:
 
-## Technical architecture
+- `levels.js` owns campaign data and deterministic materialization.
+- `game.js` owns state transitions, movement, interaction, AI, persistence, input, tweening, UI, and VFX orchestration.
+- `art.js` owns runtime vector illustration and UI drawing.
+- `audio.js` owns theme arrangements, synthesis voices, percussion, and SFX.
 
-The browser implementation uses a dependency-free Canvas 2D renderer and Web Audio. Campaign generation is deterministic and exported as 100 concrete room objects. Rendering, level data, audio, and game-state logic are separated into independent modules.
+The separation makes it practical to move to another runtime later while keeping the campaign data and art direction intact.
 
-The architecture is intentionally portable. A future native or engine-based edition can retain the level specifications, rules, hero identity, art direction, and audio motifs while replacing the renderer.
+## Release-candidate roadmap
 
-## Release-candidate path
+The current version is a complete first-pass browser campaign. A release candidate should add:
 
-The polished first pass is feature-complete as a browser game. A commercial release candidate would add platform achievements, cloud saves, localization, controller remapping, external QA passes, authored orchestral stems, and platform-specific packaging while preserving the deterministic campaign and visual identity.
+- exhaustive solver-assisted validation for crate/gate states and optimal par values
+- gamepad support and remappable controls
+- localized copy pipeline
+- save-slot import/export and explicit progress reset
+- richer chapter transition comics and ending sequence
+- additional frame-by-frame hero poses for push, skid, teleport, and celebration
+- performance profiling on low-end mobile browsers
+- accessibility pass for screen-reader summaries outside the canvas
+- packaging for desktop/mobile storefronts
+
+The core identity, campaign, rules, screens, artwork direction, and reusable series architecture are already established.

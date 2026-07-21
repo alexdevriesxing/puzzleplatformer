@@ -1,20 +1,32 @@
 {
   "name": "pip-and-the-prism-vault",
-  "version": "1.0.0",
+  "version": "3.6.0",
   "private": true,
   "type": "module",
+  "description": "A commercial 100-room puzzle arcade adventure with production art, refined UI, persistent vault secrets, resilient Cloudflare Pages deployment, accessibility, and offline support.",
   "scripts": {
-    "serve": "python3 -m http.server 4173",
+    "serve": "python3 -m http.server 4173 -d dist",
     "build": "node scripts/build.mjs",
-    "dev": "npm run build && wrangler pages dev",
+    "dev": "npm run build && wrangler pages dev dist --port 8788",
+    "dev:worker": "npm run build && wrangler dev --config wrangler.worker.jsonc",
     "test": "node tests/validate-levels.mjs",
-    "check": "node --check src/levels.js && node --check src/engine.js && node --check src/audio.js && node --check src/art.js && node --check src/game.js && npm run test && npm run build",
-    "deploy": "npm run check && wrangler pages deploy"
-  },
-  "devDependencies": {
-    "wrangler": "4.112.0"
+    "check": "node --check src/room-data.js && node --check src/levels.js && node --check src/assets.js && node --check src/audio.js && node --check src/art.js && node --check src/game.js && node --check src/main.js && node --check service-worker.js && node --check scripts/build.mjs && node --check scripts/smoke-url.mjs && npm test && node tests/validate-assets.mjs && node tests/validate-runtime.mjs && node tests/validate-ui.mjs && node tests/validate-secrets.mjs && node tests/validate-deployment.mjs && node tests/render-smoke.mjs && npm run build && npm run smoke:local",
+    "smoke:url": "node scripts/smoke-url.mjs",
+    "deploy": "npm run deploy:pages",
+    "deploy:pages": "npm run check && wrangler pages deploy dist --project-name=puzzleplatformer --branch=main",
+    "deploy:pages:preview": "npm run check && wrangler pages deploy dist --project-name=puzzleplatformer",
+    "deploy:worker": "npm run check && wrangler deploy --config wrangler.worker.jsonc",
+    "smoke:local": "node scripts/smoke-local-pages.mjs"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5",
+    "wrangler": "4.112.0"
+  },
+  "dependencies": {
+    "@cloudflare/workerd-windows-64": "^1.20260721.1",
+    "@esbuild/win32-x64": "^0.28.1"
   }
 }

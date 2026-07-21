@@ -1,112 +1,132 @@
 # Pip & the Prism Vault
 
-![Pip & the Prism Vault key art](assets/key-art.svg)
+**Production build 3.6 — commercial UI, persistent Vault secrets, resilient Cloudflare Pages delivery, offline recovery, accessibility, and release diagnostics**
 
-**Pip & the Prism Vault** is the first game in the **Pip’s Pocket Worlds** series: a complete browser-based, single-screen puzzle arcade adventure inspired by the immediacy of classic 8-bit and 16-bit games, with an original hero, crisp cartoon vector art, comic-book storytelling, fluid turn animation, adaptive music, custom sound effects, visual effects, and a production-ready campaign structure.
+![Pip & the Prism Vault key art](assets/commercial/key-art.webp)
 
-The polished first pass contains **100 deterministic rooms across ten themed chapters**. It uses no stock packs, external art, licensed music, or temporary visual placeholders. Runtime graphics, character animation, enemies, environments, UI, VFX, music, and SFX are original and authored in this repository.
+**Pip & the Prism Vault** is a complete browser puzzle-arcade adventure with 100 explicitly authored single-screen rooms across ten themed chapters. It includes a five-panel comic opening, a production raster-art pipeline, deterministic enemy behavior, turn animation, synthesized Web Audio music and effects, persistent progress, keyboard/gamepad menus, objective-forward HUD telemetry, press-and-hold touch controls, reduced-motion/high-contrast modes, PWA installation, revisioned offline support, six solution-neutral Vault secrets, and a Cloudflare Pages production pipeline with post-deployment health checks.
 
-## Play locally
+## Run locally
 
 ```bash
+npm ci --ignore-scripts
+npm run build
 npm run serve
 ```
 
 Open `http://localhost:4173`.
 
-The game has no runtime dependencies and no build step. Any static host can serve it.
+For the Cloudflare Pages runtime:
+
+```bash
+npm run dev
+```
+
+## Deploy to the production Pages project
+
+The primary deployment target is the existing `puzzleplatformer.pages.dev` project:
+
+```bash
+npm ci --ignore-scripts
+npx wrangler login
+npm run deploy
+```
+
+`wrangler.jsonc` is the source-of-truth Pages configuration and points at `./dist`. The production script uploads to the `puzzleplatformer` project on the `main` branch.
+
+An optional Workers Static Assets preview remains available through a separate configuration and cannot accidentally replace the Pages deployment:
+
+```bash
+npm run deploy:worker
+```
+
+### GitHub Actions deployment
+
+`.github/workflows/cloudflare.yml` validates, deploys to Cloudflare Pages, then checks both the immutable deployment URL and `https://puzzleplatformer.pages.dev`. Add these repository secrets:
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
+
+The production token needs Cloudflare Pages edit access. Deployments are serialized so two pushes cannot race each other.
+
+## Deployment resilience
+
+- A visible production boot screen reports individual asset-loading progress.
+- Failed assets retry once before presenting a clear reload action.
+- Service-worker updates produce an in-game reload prompt rather than silently replacing a running room.
+- Installed builds can fall back to cached HTML when the network returns a transient 5xx response, including an origin-side 522.
+- `dist/health.json` identifies the version, content revision, deployment target, and production asset count.
+- `scripts/smoke-url.mjs` retries through propagation delays and verifies the shell, health payload, PWA manifest, service worker, and hero atlas.
+- `_headers` supplies security policy and update-safe caching rules for Pages.
 
 ## Campaign
 
-Pip is the smallest Sparkkeeper in the Prism Vault. When Baron Null fractures the Prism Heart and scatters its light through ten impossible museum wings, Pip must recover every Spark, read each room’s machinery, and bring morning back to the Vault.
+1. Clockwork Foyer — patrol reading and movement fundamentals
+2. Mosslight Conservatory — keys, locks, and route ordering
+3. Glacier Gallery — crates, pressure plates, and gates
+4. Ember Foundry — ice lanes, spikes, and commitment
+5. Storm Laboratory — conveyors, turrets, and rhythmic danger
+6. Infinite Library — fragile floors, ghosts, and irreversible paths
+7. Moonlit Orrery — paired teleport coils and spatial planning
+8. Sunken Aquarium — hazards, bridges, currents, and drones
+9. Obsidian Citadel — layered combinations of established rules
+10. Prism Core — mastery rooms and the Baron Null finale
 
-Each room is a compact deterministic puzzle. Collect all three Prism Sparks, manipulate the chapter’s mechanisms, learn enemy movement rules, and reach the active lift. Turns are discrete for clarity, while movement, enemies, particles, screen effects, UI, and audio remain smooth and responsive.
+The enemy roster includes scarabs, crawlers, slimes, hoppers, turrets, drones, mimics, and ghosts.
 
-### Ten chapters
+![Final gameplay](assets/screenshots/gameplay.webp)
 
-1. **Clockwork Foyer** — patrol reading and movement fundamentals
-2. **Mosslight Conservatory** — keys, locks, and route ordering
-3. **Glacier Gallery** — crates, pressure plates, and persistent gates
-4. **Ember Foundry** — ice lanes, spikes, and commitment
-5. **Storm Laboratory** — conveyors, turrets, and rhythmic danger
-6. **Infinite Library** — fragile floors, ghosts, and irreversible paths
-7. **Moonlit Orrery** — paired teleport coils and spatial planning
-8. **Sunken Aquarium** — water pockets, bridges, currents, and drones
-9. **Obsidian Citadel** — layered combinations of established rules
-10. **Prism Core** — mastery rooms and the Baron Null finale
+## Production-art coverage
 
-The enemy roster includes scarabs, crawlers, slimes, hoppers, turrets, ghosts, mimics, and drones. Each family has a distinct silhouette, movement rule, timing profile, and audio/visual tell.
+- 1600×900 cinematic key art and transparent production logo
+- 24 illustrated, frame-aligned Pip animation frames
+- 32 enemy animation frames across eight families
+- 20 interactive-object sprites
+- collectible, key, VFX, and UI atlases
+- twenty floor/wall tiles across ten visual worlds
+- ten 1280×720 illustrated chapter backdrops
+- five cinematic comic panels
+- PWA icons, maskable icons, install screenshots, favicon, and social-sharing image
+
+The game blocks startup until every required production asset has loaded. Character, enemy, object, tile, backdrop, comic, logo, and UI placeholder renderers are not present in the shipping runtime.
 
 ## Controls
 
-| Action | Keyboard |
-|---|---|
-| Move | Arrow keys or WASD |
-| Undo | Z or Backspace |
-| Restart room | R |
-| Hint | H |
-| Pause | Escape or P |
-| Toggle sound | M |
-| Fullscreen | F |
-
-Touch controls appear automatically on coarse-pointer devices.
-
-## Production features
-
-- 100 named single-screen rooms with chapter-specific progression and par targets
-- 10 visual palettes and 10 adaptive musical arrangements
-- 8 enemy families with deterministic movement and readable telegraphs
-- keys and doors, crates and plates, gates, ice, conveyors, fragile floors, teleporters, spikes, water, and bridges
-- multi-turn undo, instant restart, persistent progress, best-move records, and 1–3 star grades
-- comic-book intro, key art, title menu, chapter directory, pause/options screens, victory, defeat, credits, and final ending
-- synthesized Web Audio music and SFX with no downloaded audio assets
-- reduced-motion, high-contrast, touch, keyboard, fullscreen, and sound options
-- responsive 16:9 presentation with a fixed logical canvas for consistent composition
+| Action | Keyboard | Gamepad |
+|---|---|---|
+| Move / navigate | Arrow keys / WASD | D-pad / left stick |
+| Confirm | Enter / Space | A |
+| Cycle menu focus | Tab / Shift+Tab | D-pad |
+| Undo | Z / Backspace | B |
+| Restart | R | X |
+| Hint | H | Y |
+| Pause | Escape / P | Start / Select |
+| Sound | M | — |
+| Fullscreen | F | — |
 
 ## Validation
 
 ```bash
 npm run check
+npx wrangler deploy --config wrangler.worker.jsonc --dry-run
 ```
 
-The automated campaign validator checks all 100 rooms for dimensions, unique names, legal placement, overlap rules, structural reachability, mechanic coverage, enemy coverage, and state-space mechanical solvability without relying on enemy luck.
+The release gate verifies all 100 stored solutions, structural uniqueness, deterministic enemy safety, 32 production image files and 112 atlas cells, every shipping screen, absence of placeholder renderers, keyboard/gamepad/touch behavior, reduced motion, audio setup, Vault secrets, Pages configuration, visible boot/update states, 5xx cache recovery, generated health metadata, the exact `dist/` bundle, and a local Cloudflare Pages runtime smoke.
 
 ## Repository map
 
-- `src/game.js` — state machine, input, movement, undo, interactions, enemy AI, progression, VFX, and UI screens
-- `src/levels.js` — ten world definitions and the complete deterministic 100-room campaign
-- `src/art.js` — runtime vector drawing for Pip, enemies, tiles, comic panels, menus, and HUD
-- `src/audio.js` — adaptive procedural score and original synthesized SFX
-- `assets/` — editable key art, logo, app icon, and hero model sheet
-- `docs/GAME_DESIGN.md` — complete game and series design foundation
-- `docs/LEVEL_ATLAS.md` — room-by-room campaign atlas
-- `docs/ART_AND_AUDIO.md` — visual, animation, UI, VFX, and audio bible
-- `tests/validate-levels.mjs` — structural and mechanical campaign validation
+- `src/game.js` — game rules, interactions, enemy AI, progression, secrets, particles, and screens
+- `src/room-data.js` — 100 explicit room definitions and verified solutions
+- `src/assets.js` — progress-reporting, retrying production asset loader
+- `src/art.js` — production atlas/backdrop renderer and UI composition
+- `src/audio.js` — adaptive procedural score and synthesized effects
+- `assets/commercial/` — shipping production assets
+- `scripts/build.mjs` — deterministic Pages bundle and health metadata
+- `scripts/smoke-url.mjs` — deployed URL health verification
+- `tests/validate-deployment.mjs` — Pages/Workers separation and resilience gate
+- `wrangler.jsonc` — production Cloudflare Pages configuration
+- `wrangler.worker.jsonc` — optional Workers Static Assets preview configuration
 
-## Original production art
+## Vault secrets
 
-![Pip hero model sheet](assets/hero-model-sheet.svg)
-
-The codebase separates campaign data, rendering, audio, and game state so Pip, the UI language, accessibility system, input layer, and production pipeline can be reused in future puzzle arcade and puzzle-platform entries.
-
-## Deploy to Cloudflare
-
-This repository deploys as a Cloudflare Worker with Static Assets. The production bundle is generated in `dist/`; source files remain outside the deployed asset directory.
-
-```bash
-npm install
-npm run check
-npx wrangler login
-npm run deploy
-```
-
-Wrangler creates the `puzzleplatformer` Worker and prints the preview or production URL. For automated GitHub deployment, configure `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets before merging to `main`.
-
-Local Cloudflare runtime:
-
-```bash
-npm install
-npm run dev
-```
-
-The game is installable as a landscape PWA and caches its core shell for offline play after the first successful load.
+Six persistent, solution-neutral easter eggs reward curiosity without changing puzzle state. Discoveries are recorded in the Credits ledger and include a C64-inspired archive display, title-screen rituals, a room-64 memory echo, a hidden Baron Null memo, and a full-mastery reward.

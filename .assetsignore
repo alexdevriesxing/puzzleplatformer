@@ -1,10 +1,7 @@
-.git/
-.github/
-docs/
-tests/
-scripts/
-node_modules/
-package*.json
-wrangler.jsonc
-README.md
-LICENSE
+.DS_Store
+Thumbs.db
+*.map
+
+assets/source/
+assets/commercial/commercial-art-bible.webp
+assets/screenshots/

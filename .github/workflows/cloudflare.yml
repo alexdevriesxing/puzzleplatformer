@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare
+name: Deploy Cloudflare Pages
 
 on:
   push:
@@ -7,20 +7,40 @@ on:
 
 permissions:
   contents: read
+  deployments: write
+
+concurrency:
+  group: cloudflare-pages-production
+  cancel-in-progress: true
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
       - run: npm run check
-      - uses: cloudflare/wrangler-action@v3
+      - name: Deploy static bundle to puzzleplatformer.pages.dev
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=puzzleplatformer
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: 4.112.0
+          command: pages deploy dist --project-name=puzzleplatformer --branch=main --commit-hash=${{ github.sha }}
+      - name: Smoke deployed and canonical Pages URLs
+        env:
+          DEPLOYMENT_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: node scripts/smoke-url.mjs "$DEPLOYMENT_URL" "https://puzzleplatformer.pages.dev"

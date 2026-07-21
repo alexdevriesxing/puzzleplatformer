@@ -1,0 +1,22 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), microphone=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/service-worker.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/health.json
+  Cache-Control: public, max-age=0, must-revalidate
+
+/src/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/commercial/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400

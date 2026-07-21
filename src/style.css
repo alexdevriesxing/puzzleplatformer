@@ -1,0 +1,291 @@
+:root {
+  color-scheme: dark;
+  --ink: #080b19;
+  --panel: #172044;
+  --cream: #fff4cf;
+  --gold: #ffd35a;
+  --cyan: #60e6ff;
+  --coral: #ff6d7a;
+  --violet: #b68cff;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(67, 86, 174, .48) 0%, rgba(17, 22, 50, .88) 42%, #070a19 100%),
+    linear-gradient(135deg, #131a3c, #080b1d);
+  overflow: hidden;
+}
+body {
+  font-family: ui-rounded, "Trebuchet MS", system-ui, sans-serif;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#app {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  position: relative;
+  isolation: isolate;
+}
+#app::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  box-shadow: inset 0 0 90px rgba(0, 0, 0, .34);
+}
+#game {
+  display: block;
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  max-width: 100%;
+  max-height: 100%;
+  image-rendering: auto;
+  background: #0d1230;
+  border-radius: clamp(0px, 1.1vw, 14px);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, .48), 0 0 0 1px rgba(255,255,255,.08);
+}
+#game:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: -3px;
+}
+#touch-controls {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 6;
+  padding:
+    12px max(14px, env(safe-area-inset-right))
+    max(14px, env(safe-area-inset-bottom))
+    max(14px, env(safe-area-inset-left));
+  display: none;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+  pointer-events: none;
+}
+#touch-controls::before {
+  content: "";
+  position: absolute;
+  inset: 28% 0 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(4,7,22,.56), transparent);
+  pointer-events: none;
+}
+#touch-controls button {
+  pointer-events: auto;
+  border: 2px solid rgba(255,255,255,.34);
+  color: white;
+  background: linear-gradient(180deg, rgba(47,61,119,.82), rgba(10,15,42,.88));
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  border-radius: 18px;
+  min-width: 60px;
+  min-height: 54px;
+  font: 900 13px/1 ui-rounded, system-ui;
+  letter-spacing: .035em;
+  text-shadow: 0 2px 4px rgba(0,0,0,.65);
+  box-shadow: 0 9px 24px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.20);
+  transition: transform 90ms ease, border-color 120ms ease, background 120ms ease, box-shadow 120ms ease;
+}
+#touch-controls button:active {
+  transform: translateY(3px) scale(.96);
+  border-color: var(--cyan);
+  background: linear-gradient(180deg, rgba(92,112,207,.94), rgba(38,48,104,.96));
+  box-shadow: 0 4px 12px rgba(0,0,0,.28), 0 0 18px rgba(96,230,255,.28);
+}
+#touch-controls button:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 3px;
+}
+.dpad {
+  width: 190px;
+  height: 126px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 7px;
+}
+.dpad button:nth-child(1) { grid-column: 2; }
+.dpad button:nth-child(2) { grid-column: 1; grid-row: 2; }
+.dpad button:nth-child(3) { grid-column: 2; grid-row: 2; }
+.dpad button:nth-child(4) { grid-column: 3; grid-row: 2; }
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(62px, 1fr));
+  gap: 8px;
+  align-self: end;
+}
+#app:fullscreen {
+  background: #050817;
+}
+#app:fullscreen #game {
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  border-radius: 0;
+  box-shadow: none;
+}
+#touch-controls[aria-hidden="true"] { display: none !important; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (hover: none), (pointer: coarse) {
+  #app[data-screen="playing"] #touch-controls { display: flex; }
+}
+@media (max-width: 760px), (max-height: 520px) {
+  #touch-controls { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  #touch-controls button { min-width: 52px; min-height: 48px; border-radius: 15px; font-size: 11px; }
+  .dpad { width: 164px; height: 108px; gap: 5px; }
+  .actions { grid-template-columns: repeat(2, minmax(54px, 1fr)); gap: 6px; }
+}
+@media (orientation: portrait) and (hover: none) {
+  #app::before {
+    content: "Rotate for the clearest Vault view";
+    position: fixed;
+    top: max(10px, env(safe-area-inset-top));
+    left: 50%;
+    z-index: 8;
+    transform: translateX(-50%);
+    padding: 8px 14px;
+    border: 1px solid rgba(255,255,255,.24);
+    border-radius: 999px;
+    color: var(--cream);
+    background: rgba(8,11,29,.88);
+    box-shadow: 0 8px 20px rgba(0,0,0,.28);
+    font: 900 12px/1 ui-rounded, system-ui;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  #touch-controls { transform: scale(.88); transform-origin: bottom center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #game { box-shadow: 0 18px 46px rgba(0,0,0,.42); }
+  #touch-controls button { transition: none; }
+}
+@media (prefers-contrast: more) {
+  #game { filter: contrast(1.18) saturate(1.06); }
+  #touch-controls button { border-color: #fff; background: rgba(3,6,20,.94); }
+}
+@media (hover: hover) and (pointer: fine) {
+  #touch-controls button:hover { border-color: rgba(255,255,255,.72); background: rgba(50,67,137,.92); }
+}
+
+#app[data-archive="true"] #game {
+  box-shadow: 0 28px 70px rgba(0,0,0,.52), 0 0 0 2px rgba(96,230,255,.36), 0 0 34px rgba(96,230,255,.16);
+}
+#app[data-archive="true"]::after {
+  box-shadow: inset 0 0 110px rgba(0,12,42,.54), inset 0 0 0 2px rgba(96,230,255,.10);
+}
+
+#boot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 20px;
+  padding: 28px;
+  background:
+    radial-gradient(circle at 50% 34%, rgba(85,105,212,.34), transparent 34%),
+    linear-gradient(180deg, rgba(8,11,29,.98), rgba(4,6,18,.995));
+  transition: opacity 280ms ease, visibility 280ms ease;
+}
+#boot-overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+#boot-overlay img {
+  width: min(72vw, 520px);
+  height: auto;
+  filter: drop-shadow(0 18px 28px rgba(0,0,0,.52));
+}
+.boot-copy {
+  width: min(82vw, 440px);
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  color: var(--cream);
+  text-align: center;
+}
+.boot-copy strong {
+  font-size: clamp(18px, 3vw, 25px);
+  letter-spacing: .025em;
+}
+.boot-copy span {
+  min-height: 1.4em;
+  color: #cbd7ff;
+  font-size: 14px;
+}
+#boot-progress {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 999px;
+  background: rgba(5,8,25,.82);
+  accent-color: var(--cyan);
+}
+#boot-progress::-webkit-progress-bar { background: rgba(5,8,25,.82); }
+#boot-progress::-webkit-progress-value { background: linear-gradient(90deg, var(--violet), var(--cyan), var(--gold)); }
+#boot-progress::-moz-progress-bar { background: linear-gradient(90deg, var(--violet), var(--cyan), var(--gold)); }
+#boot-retry,
+#system-banner button {
+  border: 1px solid rgba(255,255,255,.30);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: white;
+  background: linear-gradient(180deg, #596fc5, #344380);
+  font: 900 13px/1 ui-rounded, system-ui;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0,0,0,.28);
+}
+#boot-retry:focus-visible,
+#system-banner button:focus-visible {
+  outline: 3px solid var(--cyan);
+  outline-offset: 3px;
+}
+#system-banner {
+  position: fixed;
+  z-index: 16;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(calc(100vw - 28px), 720px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px 12px 18px;
+  border: 1px solid rgba(96,230,255,.38);
+  border-radius: 16px;
+  color: var(--cream);
+  background: rgba(8,13,38,.95);
+  backdrop-filter: blur(14px) saturate(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  box-shadow: 0 14px 34px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.08);
+}
+#system-banner[hidden] { display: none; }
+#system-banner span { font-size: 14px; line-height: 1.35; }
+#system-banner div { display: flex; gap: 8px; flex: 0 0 auto; }
+#system-dismiss { background: rgba(255,255,255,.08) !important; box-shadow: none !important; }
+@media (max-width: 620px) {
+  #system-banner { align-items: stretch; flex-direction: column; }
+  #system-banner div { justify-content: flex-end; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #boot-overlay { transition: none; }
+}
