@@ -4,7 +4,7 @@ import {VIEW,background,panel,button,text,wrap,drawTile,drawSpark,drawKey,drawCr
 
 const canvas=document.getElementById('game');const ctx=canvas.getContext('2d');const live=document.getElementById('live-region');
 const audio=new AudioDirector();
-const SAVE_KEY='pip-prism-vault-save-v1';
+const SAVE_KEY='puzzleplatformer-save-v1';
 const DEFAULT_SAVE={unlocked:1,completed:{},stars:{},best:{},sound:true,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches,contrast:false,introSeen:false};
 let save=loadSave();audio.enabled=save.sound;
 let screen='title',comicPage=0,selectedWorld=0,selectedLevel=0,hover=-1,lastTime=0,time=0,shake=0,flash=0,particles=[],buttons=[];

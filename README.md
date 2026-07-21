@@ -100,7 +100,7 @@ npx wrangler login
 npm run deploy
 ```
 
-Wrangler creates the `pip-prism-vault` Worker and prints the preview or production URL. For automated GitHub deployment, configure `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets before merging to `main`.
+Wrangler creates the `puzzleplatformer` Worker and prints the preview or production URL. For automated GitHub deployment, configure `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets before merging to `main`.
 
 Local Cloudflare runtime:
 

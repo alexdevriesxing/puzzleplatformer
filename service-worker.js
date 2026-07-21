@@ -1,4 +1,4 @@
-const CACHE = 'pip-prism-vault-__BUILD_REVISION__';
+const CACHE = 'puzzleplatformer-__BUILD_REVISION__';
 const CORE = [
   './', './index.html', './styles.css', './manifest.webmanifest',
   './src/bootstrap.js', './src/game.js', './src/levels.js', './src/art.js', './src/audio.js',
