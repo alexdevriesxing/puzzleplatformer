@@ -17,6 +17,29 @@ function atlasFrame(ctx,image,index,cols,cellW,cellH,x,y,w,h,flip=false,alpha=1)
   ctx.restore(); return true;
 }
 
+function drawNineSlice(ctx,image,index,cols,cellW,cellH,corner,x,y,w,h,alpha=1){
+  if(!ready(image)) throw new Error('Required production atlas is unavailable.');
+  const sx=(index%cols)*cellW, sy=Math.floor(index/cols)*cellH;
+  ctx.save(); ctx.globalAlpha*=alpha;
+  const c=corner;
+  ctx.drawImage(image,sx,sy,c,c,x,y,c,c);
+  ctx.drawImage(image,sx+cellW-c,sy,c,c,x+w-c,y,c,c);
+  ctx.drawImage(image,sx,sy+cellH-c,c,c,x,y+h-c,c,c);
+  ctx.drawImage(image,sx+cellW-c,sy+cellH-c,c,c,x+w-c,y+h-c,c,c);
+  if(w-2*c>0){
+    ctx.drawImage(image,sx+c,sy,cellW-2*c,c,x+c,y,w-2*c,c);
+    ctx.drawImage(image,sx+c,sy+cellH-c,cellW-2*c,c,x+c,y+h-c,w-2*c,c);
+  }
+  if(h-2*c>0){
+    ctx.drawImage(image,sx,sy+c,c,cellH-2*c,x,y+c,c,h-2*c);
+    ctx.drawImage(image,sx+cellW-c,sy+c,c,cellH-2*c,x+w-c,y+c,c,h-2*c);
+  }
+  if(w-2*c>0&&h-2*c>0){
+    ctx.drawImage(image,sx+c,sy+c,cellW-2*c,cellH-2*c,x+c,y+c,w-2*c,h-2*c);
+  }
+  ctx.restore();
+}
+
 export function rr(ctx,x,y,w,h,r){const q=Math.min(r,w/2,h/2);ctx.beginPath();ctx.roundRect(x,y,w,h,q);}
 export function fillStroke(ctx,fill,stroke=COLORS.ink,line=3){ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=line;ctx.stroke();}}
 export function text(ctx,value,x,y,size,color='#fff',align='left',weight=800,font='ui-rounded, Trebuchet MS, system-ui'){ctx.save();ctx.font=`${weight} ${size}px ${font}`;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillStyle=color;ctx.fillText(value,x,y);ctx.restore();}
@@ -38,10 +61,10 @@ export function statCard(ctx,x,y,w,h,label,value,accent=COLORS.cyan,detail=''){
 
 export function panel(ctx,x,y,w,h,fill='rgba(20,28,64,.92)',stroke='rgba(255,255,255,.18)',r=22){
   ctx.save();ctx.shadowColor='rgba(0,0,0,.42)';ctx.shadowBlur=24;ctx.shadowOffsetY=10;
-  atlasFrame(ctx,ART_ASSETS.uiAtlas,0,4,320,160,x,y,w,h);
+  let cell=0;
+  if(stroke&&(stroke.includes('gold')||stroke.includes('#ffd35a')||stroke.includes('#fff27a')||stroke.includes('#ffe071')))cell=1;
+  drawNineSlice(ctx,ART_ASSETS.uiAtlas,cell,4,320,160,36,x,y,w,h);
   ctx.globalCompositeOperation='source-atop';ctx.globalAlpha=.30;ctx.fillStyle=fill;ctx.fillRect(x,y,w,h);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
-  rr(ctx,x+.75,y+.75,w-1.5,h-1.5,r);ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();
-  rr(ctx,x+7,y+7,w-14,h-14,Math.max(8,r-7));ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1;ctx.stroke();
   const gloss=ctx.createLinearGradient(0,y,0,y+Math.min(100,h));gloss.addColorStop(0,'rgba(255,255,255,.10)');gloss.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=gloss;rr(ctx,x+8,y+8,w-16,Math.min(86,h-16),Math.max(8,r-8));ctx.fill();
   ctx.restore();
 }
@@ -118,7 +141,7 @@ export function drawEntity(ctx,e,x,y,s,t,theme,active=true){
 export function drawButton(ctx,b,hover=false,pressed=false){
   const disabled=!!b.disabled;const active=hover&&!disabled;const lift=pressed?1:active?-3:0;
   ctx.save();ctx.translate(0,lift);ctx.globalAlpha=disabled?.48:1;ctx.shadowColor=disabled?'transparent':'rgba(0,0,0,.40)';ctx.shadowBlur=active?22:16;ctx.shadowOffsetY=pressed?4:8;
-  atlasFrame(ctx,ART_ASSETS.uiAtlas,active?3:2,4,320,160,b.x,b.y,b.w,b.h);
+  drawNineSlice(ctx,ART_ASSETS.uiAtlas,active?3:2,4,320,160,32,b.x,b.y,b.w,b.h);
   if(b.fill){const g=ctx.createLinearGradient(b.x,b.y,b.x,b.y+b.h);g.addColorStop(0,b.fill);g.addColorStop(1,b.fill2??b.fill);ctx.globalCompositeOperation='source-atop';ctx.globalAlpha*=active?.58:.42;ctx.fillStyle=g;ctx.fillRect(b.x,b.y,b.w,b.h);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=disabled?.48:1;}
   if(b.focused&&!disabled){ctx.shadowColor=b.accent??COLORS.cyan;ctx.shadowBlur=12;ctx.strokeStyle=b.accent??COLORS.cyan;ctx.lineWidth=3;rr(ctx,b.x-4,b.y-4,b.w+8,b.h+8,19);ctx.stroke();ctx.shadowBlur=0;ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=1;rr(ctx,b.x-1,b.y-1,b.w+2,b.h+2,17);ctx.stroke();}
   fittedText(ctx,b.label,b.x+b.w/2,b.y+b.h/2+1,b.w-24,b.size||24,disabled?'#7f879f':active?COLORS.ink:'#fff','center',900,10);ctx.restore();
@@ -131,5 +154,12 @@ export function drawLogo(ctx,x,y,scale=1){
 export function drawKeyArt(ctx,t,theme){if(!ready(ART_ASSETS.keyArt))throw new Error('Required production key art is unavailable.');ctx.drawImage(ART_ASSETS.keyArt,0,0,1600,900,0,0,1280,720);}
 
 export function drawComicPanel(ctx,x,y,w,h,index,t){
-  const image=ART_ASSETS[`comic${index+1}`];if(!ready(image))throw new Error(`Required comic panel ${index+1} is unavailable.`);ctx.save();rr(ctx,x,y,w,h,12);ctx.clip();ctx.drawImage(image,0,0,1280,500,x,y,w,h);ctx.restore();ctx.strokeStyle=COLORS.ink;ctx.lineWidth=6;rr(ctx,x,y,w,h,12);ctx.stroke();
+  const image=ART_ASSETS[`comic${index+1}`];if(!ready(image))throw new Error(`Required comic panel ${index+1} is unavailable.`);
+  ctx.save();rr(ctx,x,y,w,h,12);ctx.clip();
+  const sAspect=1280/500,dAspect=w/h;
+  let sx=0,sy=0,sw=1280,sh=500;
+  if(dAspect>sAspect){sh=1280/dAspect;sy=(500-sh)/2;}
+  else {sw=500*dAspect;sx=(1280-sw)/2;}
+  ctx.drawImage(image,sx,sy,sw,sh,x,y,w,h);
+  ctx.restore();ctx.strokeStyle=COLORS.ink;ctx.lineWidth=6;rr(ctx,x,y,w,h,12);ctx.stroke();
 }

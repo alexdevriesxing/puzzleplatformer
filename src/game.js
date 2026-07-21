@@ -786,8 +786,10 @@ export class Game {
     const totalShards=this.level.entities.filter(e=>e.kind==='shard').length,collected=totalShards-this.remainingShards();
     this.drawProgressBar(520,105,372,8,collected,totalShards,theme.accent,'ROOM OBJECTIVE',this.remainingShards()?`${this.remainingShards()} SPARK${this.remainingShards()===1?'':'S'} LEFT`:'EXIT UNLOCKED');
     pill(ctx,910,86,116,28,this.remainingShards()?'COLLECT ALL':'REACH EXIT',this.remainingShards()?theme.accent:'#78f0a4',{size:10,fill:'rgba(8,13,34,.82)'});
-    this.addButton(1038,37,92,55,'UNDO',()=>this.undo(),{size:14,fill:'#5068a8',fill2:'#2b3b72'});
-    this.addButton(1140,37,92,55,'PAUSE',()=>this.setScreen('paused'),{size:13,fill:'#5068a8',fill2:'#2b3b72'});
+    if(this.screen==='playing'){
+      this.addButton(1038,37,92,55,'UNDO',()=>this.undo(),{size:14,fill:'#5068a8',fill2:'#2b3b72'});
+      this.addButton(1140,37,92,55,'PAUSE',()=>this.setScreen('paused'),{size:13,fill:'#5068a8',fill2:'#2b3b72'});
+    }
     ctx.save();ctx.shadowColor='rgba(0,0,0,.48)';ctx.shadowBlur=35;ctx.shadowOffsetY=18;rr(ctx,GRID_X-12,GRID_Y-12,COLS*GRID_SIZE+24,ROWS*GRID_SIZE+24,22);fillStroke(ctx,'rgba(7,10,29,.78)',theme.accent,3);ctx.restore();
     for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)drawTile(ctx,this.grid[y][x],GRID_X+x*GRID_SIZE,GRID_Y+y*GRID_SIZE,GRID_SIZE,theme,this.t);
     const order={plate:0,exit:1,shard:2,key:3,door:4,gate:5,crate:6,enemy:7,player:8};

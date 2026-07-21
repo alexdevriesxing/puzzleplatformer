@@ -143,6 +143,11 @@ body {
 }
 @media (hover: none), (pointer: coarse) {
   #app[data-screen="playing"] #touch-controls { display: flex; }
+  #app[data-screen="playing"] #game {
+    height: min(calc(100vh - 120px), calc(100vw * 9 / 16));
+    width: min(calc((100vh - 120px) * 16 / 9), 100vw);
+    transform: translateY(-38px);
+  }
 }
 @media (max-width: 760px), (max-height: 520px) {
   #touch-controls { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
