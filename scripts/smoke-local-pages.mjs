@@ -2,11 +2,10 @@ import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 
 const port=8790;
-const wrangler=resolve(process.platform==='win32'?'node_modules/.bin/wrangler.cmd':'node_modules/.bin/wrangler');
-const child=spawn(wrangler,['pages','dev','dist','--ip','127.0.0.1','--port',String(port)],{
+const wrangler=resolve('node_modules/wrangler/bin/wrangler.js');
+const child=spawn('node',[wrangler,'pages','dev','dist','--ip','127.0.0.1','--port',String(port)],{
   stdio:['ignore','pipe','pipe'],
-  detached:process.platform!=='win32',
-  shell:process.platform==='win32'
+  detached:process.platform!=='win32'
 });
 let output='';
 child.stdout.on('data',chunk=>{output+=chunk;});
