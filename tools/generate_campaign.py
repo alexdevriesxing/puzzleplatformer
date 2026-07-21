@@ -506,8 +506,14 @@ def add_mechanics(g,entities,chapter,stage,rnd,start,exitp,shards):
 
 def intended_enemy_types(chapter):
     return [
-      ['scarab','crawler'],['scarab','slime','crawler'],['hopper','crawler'],['scarab','turret','crawler'],
-      ['drone','turret'],['mimic','ghost','scarab'],['ghost','drone','hopper'],['crawler','slime','hopper'],
+      ['scarab','crawler','turret','mimic','slime'],
+      ['scarab','slime','crawler','mimic','ghost'],
+      ['hopper','crawler','turret','mimic','ghost'],
+      ['scarab','turret','crawler','mimic','drone'],
+      ['drone','turret','ghost','mimic','slime'],
+      ['mimic','ghost','scarab','turret','slime'],
+      ['ghost','drone','hopper','turret','mimic'],
+      ['crawler','slime','hopper','turret','mimic'],
       ['scarab','crawler','slime','hopper','turret','ghost','mimic','drone'],
       ['scarab','crawler','slime','hopper','turret','ghost','mimic','drone']
     ][chapter]
@@ -636,7 +642,7 @@ def add_safe_enemies(level,solution,chapter,stage,rnd):
     if chapter==0 and stage<2:return
     target=min(4, (stage+chapter)//3)
     if target<=0:return
-    pool=intended_enemy_types(chapter)
+    pool=list(intended_enemy_types(chapter)); rnd.shuffle(pool)
     base=[dict(e) for e in level['entities']]
     reserved={(e['x'],e['y']) for e in base}
     candidates=[p for p in floor_cells(level['grid']) if p not in reserved and level['grid'][p[1]][p[0]] not in ('hazard','spikes','teleportA','teleportB','ice')]

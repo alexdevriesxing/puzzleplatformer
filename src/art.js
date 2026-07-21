@@ -91,7 +91,14 @@ export function drawBackdrop(ctx,theme,t,state='game'){
 export function drawTile(ctx,kind,x,y,s,theme,t){
   const idx=THEME_INDEX[theme.theme]??0;
   atlasFrame(ctx,ART_ASSETS.tileSprites,(kind==='wall'?10:0)+idx,10,128,128,x,y,s,s);
-  if(kind==='wall') return;
+  if(kind==='wall'){
+    ctx.save();
+    ctx.globalAlpha=0.18;
+    ctx.fillStyle=theme.accent||COLORS.cyan;
+    ctx.fillRect(x+2,y+2,s-4,3);
+    ctx.restore();
+    return;
+  }
   const map={spikes:15,ice:9,fragile:13,broken:14,teleportA:11,teleportB:12};
   if(map[kind]!=null){
     ctx.save();

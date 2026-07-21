@@ -232,6 +232,12 @@ export class Game {
         this.unlockSecret('archive',state,{toggleArchive:true,burst:{x:340,y:160,color:'#77d8ff',count:36}});
         return true;
       }
+      if(this.screen==='title'&&(this.secretWord.endsWith('CHIP')||this.secretWord.endsWith('LOLO')||this.secretWord.endsWith('RETRO')||this.secretWord.endsWith('NINTENDO'))){
+        this.secretWord='';
+        const state=this.settings.archiveMode?'ARCHIVE DISPLAY OFFLINE':'64K RETRO ARCHIVE ONLINE — SALUTE TO 8-BIT CLASSICS';
+        this.unlockSecret('archive',state,{toggleArchive:true,burst:{x:640,y:220,color:'#ffd35a',count:48}});
+        return true;
+      }
       if(['credits','complete'].includes(this.screen)&&this.secretWord.endsWith('NULL')){
         this.secretWord='';
         this.unlockSecret('null','MEMO 0: ORDER IS TERRIBLY OVERRATED',{burst:{x:640,y:350,color:'#a874ff',count:34}});
