@@ -1,9 +1,9 @@
 {
-  "name": "pip-and-the-prism-vault",
+  "name": "super-sean-007-prism-vault",
   "version": "3.6.0",
   "private": true,
   "type": "module",
-  "description": "A commercial 100-room puzzle arcade adventure with production art, refined UI, persistent vault secrets, resilient Cloudflare Pages deployment, accessibility, and offline support.",
+  "description": "Super Sean 007 & the Prism Vault — official www.supersean007.com 100-room puzzle arcade adventure.",
   "scripts": {
     "serve": "python3 -m http.server 4173 -d dist",
     "build": "node scripts/build.mjs",

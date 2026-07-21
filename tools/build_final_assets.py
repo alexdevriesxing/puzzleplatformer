@@ -16,10 +16,25 @@ def box(x0,y0,x1,y1): return (sc(x0),sc(y0),sc(x1),sc(y1))
 
 INK=(8,11,25,255); GOLD=(245,190,63,255); CREAM=(255,241,194,255); CYAN=(72,220,255,255); VIOLET=(155,94,255,255); CORAL=(255,91,105,255); MINT=(90,225,145,255)
 
-font_serif='/usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed-Bold.ttf'
-if not Path(font_serif).exists(): font_serif='/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf'
-font_sans='/usr/share/fonts/truetype/lato/Lato-Heavy.ttf'
-if not Path(font_sans).exists(): font_sans='/usr/share/fonts/truetype/lato/Lato-Bold.ttf'
+def find_font(candidates):
+    for c in candidates:
+        if Path(c).exists(): return c
+    return None
+
+font_serif = find_font([
+    '/usr/share/fonts/truetype/dejavu/DejaVuSerifCondensed-Bold.ttf',
+    '/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf',
+    'C:/Windows/Fonts/georgiab.ttf',
+    'C:/Windows/Fonts/timesbd.ttf',
+    'C:/Windows/Fonts/arialbd.ttf',
+]) or 'C:/Windows/Fonts/arial.ttf'
+
+font_sans = find_font([
+    '/usr/share/fonts/truetype/lato/Lato-Heavy.ttf',
+    '/usr/share/fonts/truetype/lato/Lato-Bold.ttf',
+    'C:/Windows/Fonts/arialbd.ttf',
+    'C:/Windows/Fonts/calibrib.ttf',
+]) or 'C:/Windows/Fonts/arial.ttf'
 
 def new_canvas(w,h,bg=(0,0,0,0)):
     return Image.new('RGBA',(w*S,h*S),bg)
@@ -187,9 +202,10 @@ def enemy_frame(kind,phase,cell=160):
         polygon(d,[(55,59),(44,42),(63,48)],(146,217,71,255),INK,2); polygon(d,[(103,59),(117,42),(98,48)],(146,217,71,255),INK,2)
         line(d,[(61,115),(45-5*math.sin(p),137)],INK,6); line(d,[(99,115),(115+5*math.sin(p),137)],INK,6); eye_pair(78,14)
     elif kind=='turret':
+        eye_r = 13 + int(round(math.sin(p*1.5)*3))
         rr(d,(37,92,123,129),12,(70,78,94,255),INK,4); rr(d,(48,69,112,111),17,(97,105,121,255),INK,4)
-        rr(d,(72,40,88,79),5,(75,83,102,255),INK,3); ellipse(d,(58,62,102,104),(59,63,78,255),INK,3); ellipse(d,(67,71,93,97),(230,52,64,255),INK,3); ellipse(d,(73,77,87,91),(255,225,171,255),None)
-        line(d,[(80,67),(80,41)],(165,175,195,255),4); line(d,[(52,128),(45,140)],INK,5); line(d,[(108,128),(115,140)],INK,5)
+        rr(d,(72,40,88,79),5,(75,83,102,255),INK,3); ellipse(d,(58,62,102,104),(59,63,78,255),INK,3); ellipse(d,(80-eye_r,84-eye_r,80+eye_r,84+eye_r),(230,52,64,255),INK,3); ellipse(d,(73,77,87,91),(255,225,171,255),None)
+        line(d,[(80,67),(80+p*2,41-p)],(165,175,195,255),4); line(d,[(52,128),(45,140)],INK,5); line(d,[(108,128),(115,140)],INK,5)
     elif kind=='drone':
         # rotors
         ang=p*1.7
@@ -412,13 +428,13 @@ def fit_font(text,path,maxw,start):
         size-=2
     return ImageFont.truetype(path,sc(size))
 # text shadows and gradient mask
-f1=fit_font('PIP & THE',font_serif,760,88); f2=fit_font('PRISM VAULT',font_serif,940,128)
-ld.text(pt(500,87),'PIP & THE',font=f1,anchor='mm',fill=(0,0,0,190),stroke_width=sc(6),stroke_fill=INK)
+f1=fit_font('SUPER SEAN 007',font_serif,760,88); f2=fit_font('PRISM VAULT',font_serif,940,128)
+ld.text(pt(500,87),'SUPER SEAN 007',font=f1,anchor='mm',fill=(0,0,0,190),stroke_width=sc(6),stroke_fill=INK)
 ld.text(pt(500,215),'PRISM VAULT',font=f2,anchor='mm',fill=GOLD,stroke_width=sc(7),stroke_fill=INK)
-ld.text(pt(500,84),'PIP & THE',font=f1,anchor='mm',fill=CREAM,stroke_width=sc(2),stroke_fill=(121,71,29,255))
+ld.text(pt(500,84),'SUPER SEAN 007',font=f1,anchor='mm',fill=CREAM,stroke_width=sc(2),stroke_fill=(121,71,29,255))
 ld.text(pt(500,210),'PRISM VAULT',font=f2,anchor='mm',fill=(255,200,70,255),stroke_width=sc(2),stroke_fill=(137,70,25,255))
 line(ld,[(150,291),(850,291)],CYAN,5); draw_prism(ld,500,291,28)
-ld.text(pt(500,326),'A POCKET-WORLDS ADVENTURE',font=ImageFont.truetype(font_sans,sc(28)),anchor='mm',fill=(219,232,255,255),stroke_width=sc(1),stroke_fill=INK)
+ld.text(pt(500,326),'WWW.SUPERSEAN007.COM',font=ImageFont.truetype(font_sans,sc(28)),anchor='mm',fill=(219,232,255,255),stroke_width=sc(1),stroke_fill=INK)
 down(shadowed(logo,4,(0,5),.55)).save(OUT/'logo.png',optimize=True)
 
 # comics: use five source panels where present, else key-art-derived crops with color grading
@@ -440,7 +456,7 @@ for i in range(5):
     ci.convert('RGB').save(OUT/f'comic-{i+1}.webp','WEBP',quality=93,method=6)
 
 # icons from hero/prism key art
-icon=new_canvas(512,512,(16,19,45,255)); idr=ImageDraw.Draw(icon); draw_prism(idr,256,230,230); rr(idr,(80,382,432,455),28,(21,31,75,235),GOLD,5); idr.text(pt(256,418),'PIP',font=ImageFont.truetype(font_serif,sc(68)),anchor='mm',fill=CREAM,stroke_width=sc(3),stroke_fill=INK)
+icon=new_canvas(512,512,(16,19,45,255)); idr=ImageDraw.Draw(icon); draw_prism(idr,256,230,230); rr(idr,(80,382,432,455),28,(21,31,75,235),GOLD,5); idr.text(pt(256,418),'SEAN 007',font=ImageFont.truetype(font_serif,sc(54)),anchor='mm',fill=CREAM,stroke_width=sc(3),stroke_fill=INK)
 icon512=down(icon); icon512.save(OUT/'app-icon-512.png',optimize=True); icon512.resize((192,192),Image.Resampling.LANCZOS).save(OUT/'app-icon-192.png',optimize=True); icon512.resize((64,64),Image.Resampling.LANCZOS).save(OUT/'favicon.png',optimize=True)
 
 # asset bible contact sheet from final individual files (no embedded bogus text)
@@ -454,7 +470,7 @@ for name,im in thumbs:
 bible.save(OUT/'commercial-art-bible.webp','WEBP',quality=92,method=6)
 
 manifest={
- 'version':'3.4.0-commercial-ui-polish',
+ 'version':'3.6.0-pages-resilience-polish',
  'hero':{'cell':[160,160],'cols':6,'rows':4,'states':{'idle':[0,5],'walk':[6,11],'push':[12,17],'special':[18,23]}},
  'enemies':{'cell':[160,160],'cols':4,'rows':8,'order':['scarab','crawler','slime','hopper','turret','drone','mimic','ghost'],'framesPerEnemy':4},
  'tiles':{'cell':[128,128],'cols':10,'rows':2,'row0':'floor','row1':'wall'},

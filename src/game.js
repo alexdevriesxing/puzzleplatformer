@@ -21,11 +21,11 @@ const SECRET_DEFINITIONS = [
 const KONAMI_SEQUENCE = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','B','A'];
 
 const COMIC_COPY = [
-  ['THE VAULT AWAKENS', 'For a thousand years, the Prism Vault kept every pocket world in perfect balance. Pip was its smallest—and proudest—Sparkkeeper.'],
-  ['A LIGHT GOES OUT', 'Then the great Prism Heart vanished. The galleries twisted, the doors locked, and a laugh echoed through every brass pipe.'],
-  ['BARON NULL', '“Order is terribly dull,” purred Baron Null. “Let us see how your little worlds manage without it.”'],
-  ['ONE HUNDRED SHARDS', 'The Heart shattered into one hundred Prism Sparks, scattered through ten impossible wings of the Vault.'],
-  ['SMALL HERO. BIG VAULT.', 'Pip tightened his scarf. Every machine has a pattern. Every puzzle has an answer. Time to bring the light home.'],
+  ['THE VAULT AWAKENS', 'For a thousand years, the Prism Vault kept every pocket world in perfect balance. Super Sean 007 was its master Agent.'],
+  ['A LIGHT GOES OUT', 'Then the great Prism Heart vanished. The galleries twisted, the doors locked, and Baron Null’s shadow fell over the world.'],
+  ['THE SEARCH BEGINS', 'Super Sean 007 accepted the mission. Guided by intelligence from www.supersean007.com, he stepped into the gear chamber.'],
+  ['DANGER IN THE DARK', 'Sentry turrets locked on, scarabs patrolled the brass floors, and every room became a tactical puzzle.'],
+  ['SUPER SEAN 007 IN ACTION', 'Agent 007 checked his gear. Every machine has a pattern. Every puzzle has an answer. Time to restore the light.'],
 ];
 
 const storage = {

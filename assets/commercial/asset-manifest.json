@@ -79,7 +79,6 @@
     "cols": 4,
     "rows": 2
   },
-  "provenance": "Frame-aligned illustrated hero/enemy/collectible atlases and ten detailed chapter backdrops derived from the approved final art source.",
   "screens": [
     "title",
     "comic",
@@ -97,10 +96,12 @@
   "shippingFiles": [
     "app-icon-192.png",
     "app-icon-512.png",
-    "app-icon-maskable-512.png",
     "app-icon-maskable-192.png",
+    "app-icon-maskable-512.png",
     "favicon.png",
     "og-image.webp",
+    "install-wide.webp",
+    "install-narrow.webp",
     "key-art.webp",
     "logo.png",
     "hero-sprites.png",
@@ -124,17 +125,13 @@
     "comic-2.webp",
     "comic-3.webp",
     "comic-4.webp",
-    "comic-5.webp",
-    "install-wide.webp",
-    "install-narrow.webp"
+    "comic-5.webp"
   ],
   "qualityGate": {
     "failFastLoading": true,
     "proceduralFallbacks": false,
     "atlasCellsValidated": true,
     "headlessScreenRenderSmoke": true,
-    "contentHashedOfflineCache": true,
-    "cloudflarePagesHealthSmoke": true,
-    "transient5xxOfflineRecovery": true
+    "contentHashedOfflineCache": true
   }
 }

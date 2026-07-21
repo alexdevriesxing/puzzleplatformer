@@ -51,7 +51,7 @@ await writeFile(serviceWorkerPath, serviceWorker.replaceAll('__BUILD_REVISION__'
 
 const health = {
   status: 'ok',
-  application: 'Pip & the Prism Vault',
+  application: 'Super Sean 007 & the Prism Vault',
   version: pkg.version,
   revision,
   deploymentTarget: 'cloudflare-pages',

@@ -1,7 +1,7 @@
 {
-  "name": "Pip & the Prism Vault",
-  "short_name": "Prism Vault",
-  "description": "A commercial-art 100-room single-screen puzzle arcade adventure starring Pip the Sparkkeeper.",
+  "name": "Super Sean 007 & the Prism Vault",
+  "short_name": "Super Sean 007",
+  "description": "Super Sean 007 & the Prism Vault — official www.supersean007.com 100-room puzzle arcade adventure.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
